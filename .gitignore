@@ -32,3 +32,6 @@ Thumbs.db
 *.tmp
 *.db-shm
 *.db-wal
+.env
+.env.local
+.env.production
