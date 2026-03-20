@@ -11,7 +11,7 @@ const os = require('os');
 
 const app = express();
 const PORT = process.env.PORT || 3456;
-const JWT_SECRET = process.env.JWT_SECRET || 'rehab-schedule-secret-2026';
+const JWT_SECRET = process.env.JWT_SECRET;
 const DB_PATH = path.join(__dirname, 'data', 'rehab.db');
 const UPLOAD_DIR = path.join(__dirname, 'data', 'uploads');
 const SCHEDULE_PATH = path.join(__dirname, 'schedule_data.json');
