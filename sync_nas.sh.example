@@ -1,12 +1,20 @@
 #!/bin/bash
+# NAS Sync Script - Credentials via environment variables
+# Set NAS_USER and NAS_PASS before running, or source from /opt/rehab-schedule/.env
+
 NAS_SHARE="//192.168.1.104/SyncingFolder"
 NAS_DIR="SynologyDrive/재활 공유/재활치료실"
 NAS_FILE="전주  E재활 3 월간시간표.xlsm"
-NAS_USER="jyc"
-NAS_PASS="Wjddudckd1@"
+NAS_USER="${NAS_USER:-jyc}"
+NAS_PASS="YOUR_NAS_PASSWORD_HERE"
 LOCAL_DIR="/opt/rehab-schedule/data"
 LOCAL_FILE="$LOCAL_DIR/schedule.xlsx"
 LOG="/opt/rehab-schedule/data/sync.log"
+
+if [ -z "$NAS_PASS" ]; then
+  echo "$(date): NAS_PASS not set, exiting" >> "$LOG"
+  exit 1
+fi
 
 mkdir -p "$LOCAL_DIR"
 
