@@ -1,0 +1,26 @@
+{
+  "name": "rehab-schedule",
+  "version": "1.0.0",
+  "description": "",
+  "main": "parse_excel.js",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@xmldom/xmldom": "^0.8.11",
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^12.6.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.1.0",
+    "web-push": "^3.6.7"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0"
+  }
+}

@@ -1,0 +1,116 @@
+Option Explicit
+
+Dim mHL_Name As String
+Dim mHL_Cells As String
+
+Private Sub Worksheet_BeforeRightClick(ByVal Target As Range, Cancel As Boolean)
+    Dim txt As String
+    Dim firstName As String
+    Dim nms As Variant
+    Cancel = True
+    txt = Trim(CStr(Target.Value))
+    If txt = "" Then
+        Call DoClrHL
+        Exit Sub
+    End If
+    nms = DoGetNames(txt)
+    firstName = nms(0)
+    If firstName = "" Then
+        Call DoClrHL
+        Exit Sub
+    End If
+    If mHL_Name = firstName Then
+        Call DoClrHL
+    Else
+        Call DoHL(firstName)
+    End If
+End Sub
+
+Sub DoHL(ByVal pName As String)
+    Dim ws As Worksheet
+    Dim cell As Range
+    Dim nms As Variant
+    Dim j As Integer
+    Call DoClrHL
+    Set ws = Me
+    mHL_Name = pName
+    mHL_Cells = ""
+    For Each cell In ws.UsedRange
+        If Trim(CStr(cell.Value)) <> "" Then
+            nms = DoGetNames(CStr(cell.Value))
+            For j = 0 To UBound(nms)
+                If nms(j) = pName Then
+                    cell.Interior.Color = RGB(255, 235, 59)
+                    If mHL_Cells = "" Then
+                        mHL_Cells = cell.Address
+                    Else
+                        mHL_Cells = mHL_Cells & "," & cell.Address
+                    End If
+                    Exit For
+                End If
+            Next j
+        End If
+    Next cell
+    If mHL_Cells <> "" Then
+        Application.StatusBar = pName & " 하이라이트 (같은 셀 우클릭=해제)"
+    End If
+End Sub
+
+Sub DoClrHL()
+    Dim ws As Worksheet
+    Dim addrs() As String
+    Dim i As Integer
+    If mHL_Cells <> "" Then
+        Set ws = Me
+        addrs = Split(mHL_Cells, ",")
+        For i = 0 To UBound(addrs)
+            ws.Range(Trim(addrs(i))).Interior.ColorIndex = xlNone
+        Next i
+    End If
+    mHL_Name = ""
+    mHL_Cells = ""
+    Application.StatusBar = False
+End Sub
+
+Function DoGetNames(ByVal txt As String) As Variant
+    Dim buf(30) As String
+    Dim cnt As Integer
+    Dim cur As String
+    Dim i As Long
+    Dim ch As String
+    Dim cd As Long
+    cnt = 0
+    cur = ""
+    For i = 1 To Len(txt)
+        ch = Mid(txt, i, 1)
+        cd = AscW(ch)
+        If cd < 0 Then cd = cd + 65536
+        If cd >= 44032 And cd <= 55203 Then
+            cur = cur & ch
+        Else
+            If Len(cur) >= 2 Then
+                buf(cnt) = cur
+                cnt = cnt + 1
+                If cnt > 30 Then Exit For
+            End If
+            cur = ""
+        End If
+    Next i
+    If Len(cur) >= 2 And cnt <= 30 Then
+        buf(cnt) = cur
+        cnt = cnt + 1
+    End If
+    If cnt = 0 Then
+        Dim r0(0) As String
+        r0(0) = ""
+        DoGetNames = r0
+    Else
+        Dim r1() As String
+        ReDim r1(cnt - 1)
+        Dim k As Integer
+        For k = 0 To cnt - 1
+            r1(k) = buf(k)
+        Next k
+        DoGetNames = r1
+    End If
+End Function

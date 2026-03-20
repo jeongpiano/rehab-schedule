@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Data files (contain patient info)
+data/*.db
+data/*.json
+data/*.xlsx
+data/*.xlsm
+!data/.gitkeep
+
+# Generated schedule data
+schedule_data.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# macOS
+*.swp
+*.swo
+*~
+
+# Backup files
+*.bak
+*.tmp

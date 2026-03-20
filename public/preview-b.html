@@ -1,0 +1,1848 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!-- PWA -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#1a73e8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="시간표">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<title>전주E재활 시간표</title>
+<style>
+/* ============================================================
+   Pure Light — Material Design 3 / Clinical Feel
+   Korean Hospital Rehab Schedule Mobile Web App
+   ============================================================ */
+
+:root {
+  --primary: #00897b;
+  --ndt: #1e88e5;
+  --mat: #f57c00;
+  --ot: #388e3c;
+  --mine-color: #7c4dff;
+  --bg: #ffffff;
+  --section-bg: #f8fafb;
+  --card: #ffffff;
+  --text: #1a1c1e;
+  --muted: #6b7280;
+  --border: #eaecef;
+  --danger: #d32f2f;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.10);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   AUTH
+   ============================================================ */
+
+.auth-container {
+  max-width: 380px;
+  margin: 80px auto;
+  padding: 32px 28px;
+  background: var(--card);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+}
+
+.auth-container h2 {
+  text-align: center;
+  margin-bottom: 28px;
+  color: var(--primary);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.auth-container input {
+  width: 100%;
+  padding: 13px 14px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  color: var(--text);
+  background: var(--section-bg);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.auth-container input:focus {
+  border-color: var(--primary);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(0, 137, 123, 0.12);
+}
+
+.auth-container button {
+  width: 100%;
+  padding: 14px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 4px;
+  letter-spacing: 0.2px;
+  transition: background 0.18s, box-shadow 0.18s;
+}
+
+.auth-container button:hover {
+  background: #00796b;
+  box-shadow: 0 2px 10px rgba(0, 137, 123, 0.3);
+}
+
+.auth-container button:active {
+  background: #006b5e;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+
+.header {
+  background: #ffffff;
+  color: var(--text);
+  padding: 10px 14px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.header h1 {
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--primary);
+  letter-spacing: -0.2px;
+}
+
+.hbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  min-width: 32px;
+  padding: 0 12px;
+  background: var(--section-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.hbtn:hover {
+  background: #eef4f3;
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.hbtn:active {
+  background: #e0f2f1;
+}
+
+/* ============================================================
+   TABS
+   ============================================================ */
+
+.tabs {
+  display: flex;
+  background: #ffffff;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  flex: 1;
+  padding: 10px 6px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  border: none;
+  background: #ffffff;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  color: var(--muted);
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+  min-width: 52px;
+  letter-spacing: -0.1px;
+}
+
+.tab:hover {
+  color: var(--text);
+  background: var(--section-bg);
+}
+
+/* Default active = teal */
+.tab.active {
+  border-bottom-color: var(--primary);
+  color: var(--primary);
+  background: #ffffff;
+}
+
+.tab.ndt.active {
+  color: var(--ndt);
+  background: #ffffff;
+  border-bottom-color: var(--ndt);
+}
+
+.tab.mat.active {
+  color: var(--mat);
+  background: #ffffff;
+  border-bottom-color: var(--mat);
+}
+
+.tab.ot.active {
+  color: var(--ot);
+  background: #ffffff;
+  border-bottom-color: var(--ot);
+}
+
+.tab.mine.active {
+  color: var(--mine-color);
+  background: #ffffff;
+  border-bottom-color: var(--mine-color);
+}
+
+/* ============================================================
+   STATS BAR
+   ============================================================ */
+
+.stats-bar {
+  display: flex;
+  gap: 12px;
+  padding: 8px 14px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  background: var(--section-bg);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  flex-wrap: wrap;
+}
+
+.stats-bar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ============================================================
+   SCHEDULE TABLE
+   ============================================================ */
+
+.schedule-wrap {
+  overflow-x: auto;
+  padding: 0;
+  max-height: calc(100vh - 110px);
+  overflow-y: auto;
+  background: var(--section-bg);
+  -webkit-overflow-scrolling: touch;
+}
+
+.schedule-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 600px;
+  background: #ffffff;
+}
+
+.schedule-table th,
+.schedule-table td {
+  border: 1px solid #f0f2f4;
+  padding: 5px 6px;
+  text-align: center;
+  vertical-align: middle;
+  font-size: 12px;
+}
+
+/* Alternating rows */
+.schedule-table tbody tr:nth-child(even) td {
+  background: #fafbfc;
+}
+
+.schedule-table tbody tr:nth-child(odd) td {
+  background: #ffffff;
+}
+
+.schedule-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--section-bg);
+  color: var(--muted);
+  border-bottom: 2px solid var(--border);
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+  padding: 8px 6px;
+}
+
+.schedule-table td.time-cell {
+  background: #f8fafb !important;
+  font-weight: 800;
+  font-size: 11px;
+  color: var(--muted);
+  border-right: 2px solid var(--border);
+  min-width: 52px;
+  white-space: nowrap;
+}
+
+/* Mine column — teal left border, teal tint */
+.schedule-table td.mine {
+  background: #e0f2f1 !important;
+  border-left: 4px solid #00897b;
+  font-weight: 700;
+  color: #004d45;
+}
+
+/* ============================================================
+   MY SLOTS (내 환자 리스트 뷰)
+   ============================================================ */
+
+.my-slot {
+  display: flex;
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  margin: 0 12px 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  border-left: 4px solid var(--primary);
+}
+
+.my-time {
+  width: 72px;
+  min-width: 72px;
+  padding: 14px 8px;
+  background: var(--section-bg);
+  font-weight: 700;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  border-right: 1px solid var(--border);
+  text-align: center;
+  line-height: 1.4;
+}
+
+.my-patient {
+  flex: 1;
+  padding: 12px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  color: var(--text);
+  letter-spacing: -0.2px;
+}
+
+/* ============================================================
+   MEMO MODAL
+   ============================================================ */
+
+.memo-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.memo-modal {
+  background: #ffffff;
+  border-radius: var(--radius-xl);
+  padding: 28px 24px 24px;
+  width: 92%;
+  max-width: 360px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.16);
+  border: 1px solid var(--border);
+}
+
+.memo-modal h3,
+.memo-modal .modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 16px;
+  letter-spacing: -0.3px;
+}
+
+.memo-modal textarea {
+  width: 100%;
+  height: 90px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--section-bg);
+  resize: none;
+  outline: none;
+  line-height: 1.6;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.memo-modal textarea:focus {
+  border-color: var(--primary);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(0, 137, 123, 0.10);
+}
+
+.memo-modal .btns {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.memo-modal .btns button {
+  flex: 1;
+  padding: 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--section-bg);
+  color: var(--muted);
+  transition: all 0.15s;
+}
+
+.memo-modal .btns button:hover {
+  background: #f0f0f0;
+}
+
+.memo-modal .btns .save {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+}
+
+.memo-modal .btns .save:hover {
+  background: #00796b;
+  border-color: #00796b;
+}
+
+/* ============================================================
+   MEMO HISTORY
+   ============================================================ */
+
+.memo-history {
+  max-height: 180px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--section-bg);
+}
+
+.memo-history::-webkit-scrollbar {
+  width: 4px;
+}
+
+.memo-history::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.memo-entry {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f0f2f4;
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.memo-entry:last-child {
+  border-bottom: none;
+}
+
+.memo-entry .entry-time {
+  font-size: 10px;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+
+/* ============================================================
+   ABSENCE SECTION
+   ============================================================ */
+
+.absence-section {
+  margin: 12px;
+  padding: 14px 16px;
+  background: #fff8f0;
+  border-radius: var(--radius-md);
+  border: 1px solid #ffe0b2;
+  border-left: 4px solid var(--mat);
+}
+
+.absence-section .absence-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--mat);
+  margin-bottom: 6px;
+}
+
+/* ============================================================
+   MINE — global override
+   ============================================================ */
+
+.mine {
+  background: #e0f2f1 !important;
+  border-left: 4px solid #00897b;
+}
+
+/* ============================================================
+   UTILITY & EXTRAS
+   ============================================================ */
+
+/* Section padding wrapper */
+.section-pad {
+  padding: 12px;
+}
+
+/* Subtle divider */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0;
+}
+
+/* Loading / empty state */
+.empty-state {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.empty-state .icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+  opacity: 0.4;
+}
+
+/* Badge chips */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  gap: 4px;
+}
+
+.chip-ndt { background: #e3f2fd; color: var(--ndt); }
+.chip-mat { background: #fff3e0; color: var(--mat); }
+.chip-ot  { background: #e8f5e9; color: var(--ot);  }
+.chip-mine { background: #ede7f6; color: var(--mine-color); }
+
+/* Scrollbar — thin teal */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+</style>
+</head>
+<body>
+
+<!-- PWA 설치 배너 -->
+<div id="pwa-banner">
+  <div class="pwa-icon">📅</div>
+  <div class="pwa-text">
+    <b>홈 화면에 추가</b>
+    <span>앱처럼 빠르게 접근 + 알림 받기</span>
+  </div>
+  <button class="btn-install" id="pwa-install-btn">설치</button>
+  <button class="btn-close" onclick="dismissPwaBanner()">✕</button>
+</div>
+
+<div id="app"></div>
+
+<script>
+let pushSub = null;
+
+function urlB64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(base64);
+  const output = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; ++i) output[i] = raw.charCodeAt(i);
+  return output;
+}
+
+async function enablePush() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+    if (isIOS || isSafari) {
+      alert('📱 iOS Safari 알림 설정 방법\n\n1. 하단 공유 버튼(□↑) 탭\n2. "홈 화면에 추가" 선택\n3. 홈 화면 앱 아이콘으로 열기\n4. 다시 "알림 받기" 탭\n\niOS 16.4 이상에서 지원됩니다.');
+    } else {
+      const isAndroid = /Android/.test(navigator.userAgent);
+      if (isAndroid) {
+        alert('📱 안드로이드 알림 설정 방법\n\n현재 브라우저는 알림을 지원하지 않습니다.\n\n✅ Chrome으로 여는 방법:\n1. 주소 복사: schedule.lesprit.ddnsfree.com\n2. Chrome 앱 열기\n3. 주소창에 붙여넣기 후 접속\n4. 로그인 후 "알림 받기" 탭\n5. "허용" 선택\n\n삼성 인터넷 사용 중이라면\nChrome 설치 후 이용해주세요.');
+      } else {
+        alert('이 브라우저는 푸시 알림을 지원하지 않습니다.\nChrome 또는 Edge 브라우저를 사용해주세요.');
+      }
+    }
+    return;
+  }
+  const perm = await Notification.requestPermission();
+  if (perm !== 'granted') {
+    alert('알림 권한이 필요합니다.');
+    return;
+  }
+
+  try {
+    const reg = await navigator.serviceWorker.register('/sw.js');
+    await navigator.serviceWorker.ready;
+    const { publicKey } = await api('GET', '/api/push/public-key');
+    if (!publicKey) throw new Error('서버에서 VAPID 키를 받지 못했습니다.');
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlB64ToUint8Array(publicKey)
+    });
+    pushSub = sub;
+    const result = await api('POST', '/api/push/subscribe', { subscription: sub });
+    if (result?.error) throw new Error(result.error);
+    alert('✅ 알림이 켜졌습니다!\n(내 스케줄 변경 시 알림이 옵니다)');
+    render();
+  } catch(err) {
+    console.error('Push 등록 오류:', err);
+    alert('❌ 알림 설정 실패\n\n오류: ' + (err.message || err) + '\n\n- HTTPS 주소로 접속했는지 확인\n- 브라우저 알림 차단 여부 확인\n- 홈 화면 추가 후 재시도(iOS)');
+  }
+}
+
+async function disablePush() {
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    const sub = await reg?.pushManager.getSubscription();
+    await sub?.unsubscribe();
+  } catch(e) {}
+  pushSub = null;
+  try { await api('POST', '/api/push/unsubscribe'); } catch(e) {}
+  alert('알림을 껐습니다.');
+  render();
+}
+
+const API = '';
+let token = localStorage.getItem('token');
+let currentUser = null;
+let scheduleData = {};
+let availableDates = [];
+let currentDate = getKSTDateStr();
+let currentTab = 'all';
+let selectedTherapist = null;
+let memoCache = {};
+let scheduleChanges = [];
+let changeKeys = new Set(); // "col:time" for highlight // patientName -> [memos]
+
+async function api(method, url, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (token) opts.headers.Authorization = `Bearer ${token}`;
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(API + url, opts);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'API 오류');
+  return data;
+}
+
+async function login(username, password) {
+  const data = await api('POST', '/api/login', { username, password });
+  token = data.token;
+  currentUser = data.user;
+  localStorage.setItem('token', token);
+  selectedTherapist = currentUser.therapistColumn || null;
+  await loadSchedule();
+  await loadChanges();
+  connectSSE();
+  // Preload current push subscription status (best-effort)
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    pushSub = await reg?.pushManager.getSubscription();
+  } catch(e) {}
+  render();
+}
+
+function connectSSE() {
+  try {
+    const es = new EventSource(API + '/api/events?token=' + token);
+    es.onmessage = async (e) => {
+      const data = JSON.parse(e.data);
+      if (data.type === 'change') {
+        scheduleChanges = data.changes;
+        changeKeys = new Set(data.changes.map(c => c.col + ':' + c.time));
+        // Reload schedule data
+        await loadSchedule();
+        render();
+        // In-app only (system push will be implemented later in Stage 3)
+      }
+    };
+    es.onerror = () => { setTimeout(connectSSE, 30000); es.close(); };
+  } catch(e) {}
+}
+
+async function loadChanges() {
+  try {
+    scheduleChanges = await api('GET', '/api/changes');
+    changeKeys = new Set(scheduleChanges.map(c => c.col + ':' + c.time));
+  } catch(e) {}
+}
+
+function closeChanges() {
+  const el = document.getElementById('changesOverlay');
+  if (el) el.remove();
+}
+
+function showChanges() {
+  closeChanges();
+  const items = (scheduleChanges || []).slice(0, 200);
+  const htmlItems = items.map(c => {
+    const time = c.time === '결석' ? '결석' : c.time;
+    return `<div style="padding:10px 12px;border-bottom:1px solid #eee">
+      <div style="font-weight:800;font-size:13px">${time} · ${c.therapist || ''}</div>
+      <div style="color:#666;font-size:12px;margin-top:4px">${escapeHtml(c.oldText)} → <b>${escapeHtml(c.newText)}</b></div>
+    </div>`;
+  }).join('') || '<div style="padding:14px;color:#666">변경사항 없음</div>';
+
+  const overlay = document.createElement('div');
+  overlay.id = 'changesOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;display:flex;align-items:flex-end;justify-content:center';
+  overlay.innerHTML = `
+    <div style="width:100%;max-width:520px;background:#fff;border-radius:14px 14px 0 0;max-height:70vh;overflow:auto;box-shadow:0 -6px 18px rgba(0,0,0,0.2)">
+      <div style="position:sticky;top:0;background:#fff;padding:12px 14px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center">
+        <div style="font-weight:900">🔔 당일 변경 ${items.length}건</div>
+        <button onclick="closeChanges()" style="border:none;background:#eee;border-radius:8px;padding:6px 10px">닫기</button>
+      </div>
+      ${htmlItems}
+    </div>`;
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeChanges(); });
+  document.body.appendChild(overlay);
+}
+
+function escapeHtml(s) {
+  return (s || '').toString()
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'",'&#39;');
+}
+
+async function register(username, password, displayName) {
+  await api('POST', '/api/register', { username, password, displayName });
+  alert('가입 완료! 관리자 승인 후 사용 가능합니다.');
+  renderAuth('login');
+}
+
+function logout() {
+  token = null; currentUser = null; localStorage.removeItem('token'); render();
+}
+
+function getKSTDateStr() {
+  // Asia/Seoul 기준 YYYY-MM-DD
+  return new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+}
+
+
+function parseToken() {
+  if (!token) return null;
+  try {
+    // UTF-8 safe base64 decode for Korean characters
+    const b64 = token.split('.')[1];
+    const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+    const payload = JSON.parse(new TextDecoder().decode(bytes));
+    if (payload.exp * 1000 < Date.now()) { logout(); return null; }
+    return payload;
+  } catch { logout(); return null; }
+}
+
+async function loadSchedule() {
+  try {
+    scheduleData = await api('GET', '/api/schedule');
+    // Load history dates and merge
+    try {
+      const histDates = await api('GET', '/api/schedule/history');
+      const allDates = new Set([...Object.keys(scheduleData), ...histDates]);
+      availableDates = [...allDates].sort();
+    } catch(e) {
+      availableDates = Object.keys(scheduleData).sort();
+    }
+    if (!scheduleData[currentDate]) {
+      const today = new Date().toISOString().split('T')[0];
+      const future = availableDates.filter(d => d >= today);
+      currentDate = future[0] || availableDates[availableDates.length - 1] || currentDate;
+    }
+  } catch (e) { console.error('Schedule load error:', e); }
+}
+
+async function navigateDate(dir) {
+  const idx = availableDates.indexOf(currentDate);
+  const newIdx = idx + dir;
+  if (newIdx >= 0 && newIdx < availableDates.length) {
+    currentDate = availableDates[newIdx];
+    // Load from history if not in current scheduleData
+    if (!scheduleData[currentDate]) {
+      try {
+        const histData = await api('GET', '/api/schedule/history/' + currentDate);
+        scheduleData[currentDate] = histData;
+      } catch(e) {}
+    }
+    render();
+  }
+}
+
+function openDatePicker() {
+  closeMemo();
+  const d = new Date(currentDate);
+  let calYear = d.getFullYear(), calMonth = d.getMonth();
+  
+  function renderCal() {
+    const today = new Date().toISOString().split('T')[0];
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    const firstDay = new Date(calYear, calMonth, 1).getDay(); // 0=Sun
+    const monthNames = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+    
+    let grid = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:12px;min-height:240px">';
+    ['일','월','화','수','목','금','토'].forEach((d,i) => {
+      const color = i===0?'#c62828':i===6?'#1565c0':'#666';
+      grid += `<div style="font-weight:700;padding:4px;color:${color}">${d}</div>`;
+    });
+    // 6 rows always (42 cells) for consistent height
+    const totalCells = 42;
+    for (let i = 0; i < firstDay; i++) grid += '<div></div>';
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const isToday = dateStr === today;
+      const isCurrent = dateStr === currentDate;
+      const hasData = availableDates.includes(dateStr);
+      const dow = new Date(calYear, calMonth, day).getDay();
+      let bg = 'transparent', fg = dow===0?'#c62828':dow===6?'#1565c0':'#333';
+      if (isCurrent) { bg = 'var(--primary)'; fg = '#fff'; }
+      else if (isToday) { bg = '#e3f2fd'; }
+      const opacity = hasData ? '1' : '0.3';
+      const cursor = hasData ? 'pointer' : 'default';
+      grid += `<div onclick="${hasData ? `selectCalDate('${dateStr}')` : ''}" style="padding:6px 2px;border-radius:6px;background:${bg};color:${fg};opacity:${opacity};cursor:${cursor};font-weight:${isToday||isCurrent?'700':'400'}">${day}</div>`;
+    }
+    // Pad remaining cells for 6 rows
+    const usedCells = firstDay + daysInMonth;
+    for (let i = usedCells; i < totalCells; i++) grid += '<div></div>';
+    grid += '</div>';
+    
+    document.getElementById('calGrid').innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <button onclick="calNav(-1)" style="border:none;background:rgba(0,0,0,0.05);padding:6px 12px;border-radius:6px;font-size:14px;cursor:pointer">◀</button>
+        <span style="font-weight:700;font-size:15px">${calYear}년 ${monthNames[calMonth]}</span>
+        <button onclick="calNav(1)" style="border:none;background:rgba(0,0,0,0.05);padding:6px 12px;border-radius:6px;font-size:14px;cursor:pointer">▶</button>
+      </div>
+      ${grid}
+    `;
+  }
+  
+  window.calNav = function(dir) { calMonth += dir; if (calMonth < 0) { calMonth = 11; calYear--; } if (calMonth > 11) { calMonth = 0; calYear++; } renderCal(); };
+  window.selectCalDate = function(dateStr) { closeMemo(); jumpToDateStr(dateStr); };
+  
+  const overlay = document.createElement('div');
+  overlay.className = 'memo-overlay';
+  overlay.innerHTML = `<div class="memo-modal" style="max-width:320px"><div id="calGrid"></div><div class="btns" style="margin-top:8px"><button class="cancel" onclick="closeMemo()">닫기</button><button class="save" onclick="closeMemo();goToday()">오늘</button></div></div>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeMemo(); });
+  document.body.appendChild(overlay);
+  renderCal();
+}
+
+async function jumpToDateStr(dateVal) {
+  if (!dateVal) return;
+  if (scheduleData[dateVal]) { currentDate = dateVal; render(); return; }
+  try {
+    const histData = await api('GET', '/api/schedule/history/' + dateVal);
+    scheduleData[dateVal] = histData;
+    currentDate = dateVal;
+    render();
+  } catch(e) { alert('해당 날짜 데이터가 없습니다: ' + dateVal); }
+}
+
+function goToday() {
+  // KST 기준 오늘로 이동
+  const today = getKSTDateStr();
+  const nearest = availableDates.reduce((prev, curr) =>
+    Math.abs(new Date(curr) - new Date(today)) < Math.abs(new Date(prev) - new Date(today)) ? curr : prev
+  , availableDates[0]);
+  currentDate = nearest || today;
+  render();
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  const days = ['일','월','화','수','목','금','토'];
+  return `${d.getMonth()+1}/${d.getDate()} (${days[d.getDay()]})`;
+}
+
+function isPM(timeStr) {
+  // 1:40 이후 = 오후
+  const h = parseInt(timeStr.split(':')[0]);
+  const m = parseInt(timeStr.split(':')[1]) || 0;
+  if (h >= 13) return true;
+  if (h >= 1 && h <= 5) return true;  // 1:40~5:35
+  return false;
+}
+
+function renderAuth(mode = 'login') {
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="auth-container">
+      <h2>🏥 전주E재활 시간표</h2>
+      <div id="auth-error" class="auth-error"></div>
+      ${mode === 'login' ? `
+        <input id="username" placeholder="아이디" autocomplete="username">
+        <input id="password" type="password" placeholder="비밀번호" autocomplete="current-password">
+        <button onclick="handleLogin()">로그인</button>
+        <div class="auth-toggle"><a onclick="renderAuth('register')">계정이 없으신가요? 가입하기</a></div>
+      ` : `
+        <input id="displayName" placeholder="이름 (예: 김서현)">
+        <input id="username" placeholder="아이디">
+        <input id="password" type="password" placeholder="비밀번호">
+        <button onclick="handleRegister()">가입 신청</button>
+        <div class="auth-toggle"><a onclick="renderAuth('login')">이미 계정이 있으신가요? 로그인</a></div>
+      `}
+    </div>`;
+  setTimeout(() => {
+    document.querySelectorAll('.auth-container input').forEach(input => {
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') mode === 'login' ? handleLogin() : handleRegister(); });
+    });
+  }, 0);
+}
+
+async function handleLogin() {
+  const u = document.getElementById('username').value;
+  const p = document.getElementById('password').value;
+  try { await login(u, p); } catch (e) { document.getElementById('auth-error').textContent = e.message; }
+}
+
+async function handleRegister() {
+  const n = document.getElementById('displayName').value;
+  const u = document.getElementById('username').value;
+  const p = document.getElementById('password').value;
+  try { await register(u, p, n); } catch (e) { document.getElementById('auth-error').textContent = e.message; }
+}
+
+function renderSchedule() {
+  const dayData = scheduleData[currentDate];
+
+  // Get therapists for current tab
+  let therapists = [];
+  if (dayData) {
+    therapists = Object.entries(dayData.therapists || {});
+    if (currentTab !== 'all') {
+      therapists = therapists.filter(([_, t]) => t.category === currentTab);
+    }
+    // 허유선(J) 로그인 시 → J, K(F3), L(FES) 모두 표시
+    if (currentUser.therapistColumn === 'J' && currentTab === 'all') {
+      // already shows all
+    } else if (currentUser.therapistColumn === 'J' && currentTab !== 'MAT') {
+      // 다른 탭에서도 MAT 3열 포함
+      const matCols = Object.entries(dayData.therapists || {}).filter(([_, t]) => t.category === 'MAT');
+      const existing = new Set(therapists.map(([c]) => c));
+      for (const mc of matCols) {
+        if (!existing.has(mc[0])) therapists.push(mc);
+      }
+    }
+  }
+
+  // Count
+  let ndtCount = 0, matCount = 0, otCount = 0;
+  if (dayData) {
+    dayData.timeSlots.forEach(slot => {
+      Object.entries(slot.patients).forEach(([col, p]) => {
+        if (p.category === 'NDT') ndtCount++;
+        else if (p.category === 'MAT') matCount++;
+        else if (p.category === 'OT') otCount++;
+      });
+    });
+  }
+
+  let html = `
+    <div class="header">
+      <h1>🏥 전주E재활</h1>
+      <div class="header-nav">
+        <button class="hbtn" onclick="navigateDate(-1)">◀</button>
+        <span class="current-date" onclick="openDatePicker()" style="cursor:pointer">${formatDate(currentDate)} 📅</span>
+        <button class="hbtn" onclick="navigateDate(1)">▶</button>
+        <button class="hbtn" onclick="goToday()">오늘</button>
+      </div>
+      <div class="header-actions">
+        ${scheduleChanges.length > 0 ? `<button class="hbtn" onclick="showChanges()" style="background:rgba(255,200,0,0.85);color:#333;animation:pulse 2s infinite">🔔 ${scheduleChanges.length}</button>` : ''}
+        <button class="hbtn" onclick="openSearch()">🔍</button>
+        ${(currentUser.role === 'admin' || currentUser.role === 'manager') ? '<button class="hbtn" onclick="renderAdmin()">관리</button>' : ''}
+        <span class="user-name" onclick="toggleProfileMenu()" style="cursor:pointer;position:relative">👤 ${currentUser.displayName} ▾
+          <div id="profileMenu" style="display:none;position:absolute;right:0;top:24px;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);min-width:140px;z-index:200">
+            <div style="padding:10px 14px;font-size:12px;color:#333;border-bottom:1px solid #eee" onclick="openChangePassword()">🔑 비밀번호 변경</div>
+            <div style="padding:10px 14px;font-size:12px;color:#333;border-bottom:1px solid #eee" onclick="enablePush()">🔔 알림 켜기(본인)</div>
+            <div style="padding:10px 14px;font-size:12px;color:#333;border-bottom:1px solid #eee" onclick="disablePush()">🔕 알림 끄기</div>
+            <div style="padding:10px 14px;font-size:12px;color:#c62828" onclick="logout()">↩ 로그아웃</div>
+          </div>
+        </span>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab ${currentTab==='all'?'active':''}" onclick="setTab('all')">전체</button>
+      <button class="tab ndt ${currentTab==='NDT'?'active':''}" onclick="setTab('NDT')">NDT</button>
+      <button class="tab mat ${currentTab==='MAT'?'active':''}" onclick="setTab('MAT')">MAT</button>
+      <button class="tab ot ${currentTab==='OT'?'active':''}" onclick="setTab('OT')">OT</button>
+      ${currentUser.therapistColumn ? `<button class="tab mine ${currentTab==='mine'?'active':''}" onclick="setTab('mine')">👤 본인</button>` : ''}
+    </div>
+    <div class="stats-bar">
+      <div class="stat"><span class="stat-dot ndt"></span> NDT ${ndtCount}</div>
+      <div class="stat"><span class="stat-dot mat"></span> MAT ${matCount}</div>
+      <div class="stat"><span class="stat-dot ot"></span> OT ${otCount}</div>
+    </div>`;
+
+  // "본인" 탭 렌더링
+  if (currentTab === 'mine' && dayData && currentUser.therapistColumn) {
+    const myCol = currentUser.therapistColumn;
+    const myTherapist = dayData.therapists[myCol];
+    // 허유선(J)이면 J,K,L 모두 표시
+    const myCols = myCol === 'J' ? ['J','K','L'] : [myCol];
+
+    html += `<div class="my-schedule">`;
+    let prevPM = false;
+    for (const slot of dayData.timeSlots) {
+      const pm = isPM(slot.time);
+      if (pm && !prevPM) {
+        html += `<div onclick="openLunchChat()" style="background:#ff9800;color:#fff;text-align:center;font-weight:700;font-size:12px;padding:6px 0;border-radius:8px;margin:6px 0;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:20px;"><span onclick="event.stopPropagation();openLotteryModal()" title="" style="cursor:pointer;display:inline-block;">🍚</span><span>점심시간</span></div>`;
+      }
+      prevPM = pm;
+
+      // Collect patients from my columns
+      const myPatients = [];
+      for (const c of myCols) {
+        if (slot.patients[c]) myPatients.push({col: c, ...slot.patients[c]});
+      }
+
+      const timeLabel = slot.time.replace('-', '~');
+      if (myPatients.length === 0) {
+        // Show empty slot
+        html += `<div class="my-slot" style="opacity:0.4">
+          <div class="my-time ${pm?'pm':''}">${timeLabel}</div>
+          <div class="my-patient"><span class="name" style="color:var(--muted)">—</span></div>
+        </div>`;
+      } else {
+        for (const p of myPatients) {
+          // cleanPN: 메모 키는 이름만 (F3 등 마커 제거), 표시는 p.text 그대로 (F3 보임)
+          const cleanPN = extractNames(p.text)[0] || p.text.replace(/\s*[NFMSDnfmsd]\d*(\(.*?\))?/g,'').replace(/\(도\)/g,'').trim();
+          const hasMemo = memoCache[cleanPN] && memoCache[cleanPN].length > 0;
+          const myTagBg = p.tag ? `background:${tagBg(p.tag)};border-radius:6px;padding:1px 4px;` : '';
+          html += `<div class="my-slot" oncontextmenu="openMemo('${cleanPN.replace(/'/g,"\\'")}');return false;" ontouchstart="startLongPress('${cleanPN.replace(/'/g,"\\'")}')" ontouchend="cancelLongPress()" ontouchmove="cancelLongPress()">
+            <div class="my-time ${pm?'pm':''}">${timeLabel}</div>
+            <div class="my-patient">
+              <span class="name" style="${myTagBg}" title="${p.tag||''}">${p.text}</span>
+              <span class="memo-icon ${hasMemo?'has-memo':''}" onclick="openMemo('${cleanPN.replace(/'/g,"\\'")}')">${hasMemo?'📝':'✏️'}</span>
+            </div>
+          </div>`;
+        }
+      }
+    }
+
+    // My absences
+    const absByCol = dayData.absencesByCol || {};
+    const myAbsences = [];
+    for (const c of myCols) {
+      myAbsences.push(...(absByCol[c] || []));
+    }
+    if (myAbsences.length > 0) {
+      html += `<div class="absence-section"><h3>⚠️ 내 결석환자 (${myAbsences.length}명)</h3>
+        <div class="absence-list">${myAbsences.map(n => `<span class="absence-tag">${n}</span>`).join('')}</div></div>`;
+    }
+    html += '</div>';
+    document.getElementById('app').innerHTML = html;
+    return;
+  }
+
+  if (!dayData || therapists.length === 0) {
+    html += '<div class="no-data">📋 해당 날짜 시간표가 없습니다</div>';
+  } else {
+    // Build table: columns = therapists, rows = time slots
+    html += '<div class="schedule-wrap"><table class="schedule-table"><thead><tr>';
+    html += '<th class="time-hdr">시간</th>';
+    for (const [col, t] of therapists) {
+      const cat = t.category.toLowerCase();
+      html += `<th class="${cat}-hdr">${t.name}</th>`;
+    }
+    html += '</tr></thead><tbody>';
+
+    let prevPM = false;
+    for (const slot of dayData.timeSlots) {
+      const pm = isPM(slot.time);
+      // 오전→오후 전환 시 구분선
+      if (pm && !prevPM) {
+        html += `<tr><td colspan="${therapists.length + 1}" onclick="openLunchChat()" style="background:#ff9800;color:#fff;text-align:center;font-weight:700;font-size:12px;padding:6px 0;cursor:pointer;"><span onclick="event.stopPropagation();openLotteryModal()" style="cursor:pointer;display:inline-block;margin-right:20px;">🍚</span>점심시간</td></tr>`;
+      }
+      prevPM = pm;
+      html += `<tr><td class="time-cell ${pm ? 'pm' : ''}">${slot.time.replace(' - ', '<br>~<br>')}</td>`;
+      for (const [col, t] of therapists) {
+        const p = slot.patients[col];
+        const cat = t.category.toLowerCase();
+        const isMine = currentUser.therapistColumn === col;
+        if (p) {
+          const memoCat = cat.toUpperCase();
+          // Use splitPatientNames logic to extract individual names
+          const names = extractNames(p.text);
+          const isChanged = changeKeys.has(col + ':' + slot.time);
+          const tagColor = p.tag ? `background:${tagBg(p.tag)};` : '';
+          const changeBg = isChanged ? 'background:#fff9c4;border:2px solid #fbc02d;' : tagColor;
+          if (names.length > 1) {
+            const namesWithM = extractNamesWithMarkers(p.text);
+            const cellContent = namesWithM.map(({name, marker}) => {
+              const hasMemo = memoCache[name] && memoCache[name].length > 0;
+              const displayLabel = marker ? `${name} ${marker}` : name;
+              return `<span class="clickable-name" onclick="memoTabCat='${memoCat}';openMemo('${name.replace(/'/g,"\\'")}')">${displayLabel}${hasMemo?' 📝':''}</span>`;
+            }).join(' ');
+            html += `<td class="${cat}-cell ${isMine ? 'mine' : ''}" style="${changeBg}" title="${p.tag||''}">${cellContent}</td>`;
+          } else {
+            const pName = names[0] || p.text.replace(/\s*[NFMSDnfmsd]\d*(\(.*?\))?/g,'').replace(/\(도\)/g,'').trim();
+            const hasMemo = memoCache[pName] && memoCache[pName].length > 0;
+            html += `<td class="${cat}-cell ${isMine ? 'mine' : ''}" onclick="memoTabCat='${memoCat}';openMemo('${pName.replace(/'/g,"\\'")}')" style="cursor:pointer;${changeBg}" title="${p.tag||''}">${p.text}${hasMemo?' 📝':''}</td>`;
+          }
+        } else {
+          html += `<td class="${cat}-cell empty ${isMine ? 'mine' : ''}"></td>`;
+        }
+      }
+      html += '</tr>';
+    }
+
+    // Patient count row — NDT tab: N+M count, OT tab: slot count
+    const excelCounts = dayData.patientCounts || {};
+    if (currentTab === 'NDT' || currentTab === 'OT' || currentTab === 'all') {
+      html += `<tr class="count-row"><td class="time-cell" style="background:#e3f2fd;font-weight:700;font-size:11px">📊 환자수</td>`;
+      for (const [col, t] of therapists) {
+        // Skip MAT columns (J, K, L)
+        if (['J','K','L'].includes(col)) {
+          html += `<td style="background:#e3f2fd"></td>`;
+          continue;
+        }
+        const count = excelCounts[col] ?? 0;
+        html += `<td style="background:#e3f2fd;text-align:center;font-weight:700;font-size:13px;color:var(--primary)">${count}</td>`;
+      }
+      html += '</tr>';
+    }
+
+    // Absence row in table
+    const absByCol = dayData.absencesByCol || {};
+    const hasAbsences = Object.keys(absByCol).length > 0 || (dayData.absences && dayData.absences.length > 0);
+    if (hasAbsences) {
+      // Find max absence rows needed
+      let maxAbs = 0;
+      for (const [col] of therapists) {
+        maxAbs = Math.max(maxAbs, (absByCol[col] || []).length);
+      }
+      if (maxAbs === 0) maxAbs = 1;
+
+      for (let ai = 0; ai < maxAbs; ai++) {
+        html += `<tr><td class="time-cell" style="background:#ffebee;color:var(--danger);font-size:11px">${ai === 0 ? '⚠️ 결석' : ''}</td>`;
+        for (const [col] of therapists) {
+          const abs = absByCol[col] || [];
+          const name = abs[ai] || '';
+          if (name) {
+            const cleanName = name.replace(/[NFMSD]\d*(\(.*?\))?/g,'').replace(/\(도\)/g,'').trim();
+            html += `<td style="background:#fff5f5;color:var(--danger);font-size:11px;cursor:pointer" onclick="memoTabCat='ETC';openMemo('${cleanName.replace(/'/g,"\\'")}')">${name}</td>`;
+          } else {
+            html += `<td style="background:#fff5f5"></td>`;
+          }
+        }
+        html += '</tr>';
+      }
+    }
+
+    html += '</tbody></table></div>';
+  }
+
+  document.getElementById('app').innerHTML = html;
+}
+
+function setTab(tab) { currentTab = tab; render(); }
+function selectTherapist(col) { selectedTherapist = col; render(); }
+
+// Tag dot: return small colored circle prefix for patient status tags
+function tagBg(tag) {
+  const map = { '신환/추가': '#e8f5e9', '임시': '#e3f2fd', '보류': '#fff3e0', '시간변경': '#fce4ec' };
+  return map[tag] || '';
+}
+function tagDot(tag) {
+  if (!tag) return '';
+  const dots = { '신환/추가': '🟢', '임시': '🔵', '보류': '🟠', '시간변경': '🟣' };
+  const d = dots[tag];
+  return d ? `<span style="font-size:9px;margin-right:2px" title="${tag}">${d}</span>` : '';
+}
+
+// ========== Memo (Server-based) ==========
+let longPressTimer = null;
+function startLongPress(name, cat) {
+  longPressTimer = setTimeout(() => { navigator.vibrate?.(30); if (cat) memoTabCat = cat; openMemo(name); }, 800);
+}
+function cancelLongPress() {
+  if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+}
+let memoTabCat = null; // current memo tab category
+async function openMemo(name) {
+  cancelLongPress();
+  // Close existing memo overlay first
+  closeMemo();
+  // Default to user's category
+  if (!memoTabCat) memoTabCat = currentUser.category || 'NDT';
+  
+  // Load memo history + attendance in parallel
+  let memoList = [];
+  let attendance = [];
+  try {
+    [memoList, attendance] = await Promise.all([
+      api('GET', `/api/memos/${encodeURIComponent(name)}`),
+      api('GET', `/api/patients/${encodeURIComponent(name)}/attendance?weeks=3`).catch(() => [])
+    ]);
+    memoCache[name] = memoList;
+  } catch(e) { console.error(e); }
+
+  // Filter by selected category (ALL = show everything)
+  const filtered = memoTabCat === 'ALL' ? memoList : memoList.filter(m => m.category === memoTabCat);
+  const counts = { NDT: 0, MAT: 0, OT: 0, ETC: 0 };
+  memoList.forEach(m => { if (counts[m.category] !== undefined) counts[m.category]++; else counts.ETC++; });
+
+  const tabHtml = `<div style="display:flex;gap:0;margin-bottom:8px;border-radius:8px;overflow:hidden;border:1px solid var(--border)">
+    ${['ALL','NDT','MAT','OT','ETC'].map(c => {
+      const active = c === memoTabCat;
+      const colors = {ALL:'#424242',NDT:'#1565c0',MAT:'#e65100',OT:'#2e7d32',ETC:'#6a1b9a'};
+      const labels = {ALL:'모두',NDT:'NDT',MAT:'MAT',OT:'OT',ETC:'기타'};
+      const bg = active ? colors[c] : '#f5f5f5';
+      const fg = active ? '#fff' : '#666';
+      const cnt = c === 'ALL' ? memoList.length : counts[c] || 0;
+      return `<div onclick="memoTabCat='${c}';openMemo('${name.replace(/'/g,"\\'")}')" style="flex:1;text-align:center;padding:5px 2px;font-size:10px;font-weight:600;background:${bg};color:${fg};cursor:pointer">${labels[c]} ${cnt?'('+cnt+')':''}</div>`;
+    }).join('')}
+  </div>`;
+
+  const historyHtml = filtered.length > 0
+    ? `<div class="memo-history">${filtered.map(m => {
+        const canEdit = m.author_id === currentUser.id || currentUser.role === 'admin' || currentUser.role === 'manager';
+        return `<div class="memo-entry">
+          ${canEdit ? `<span class="del-btn" onclick="deleteMemo(${m.id},'${name.replace(/'/g,"\\'")}')">삭제</span><span class="del-btn" style="color:var(--primary);margin-right:4px" onclick="editMemo(${m.id},'${name.replace(/'/g,"\\'")}','${m.memo.replace(/'/g,"\\'").replace(/\n/g,"\\n")}')">수정</span>` : ''}
+          <div class="meta">👤 ${m.author_name} · ${m.created_at || m.date || ''}</div>
+          <div class="text">${m.memo}</div>
+        </div>`;
+      }).join('')}</div>`
+    : '<div style="color:var(--muted);font-size:12px;margin-bottom:8px;text-align:center">메모 없음</div>';
+
+  const overlay = document.createElement('div');
+  // Build attendance badge HTML
+  const attendHtml = attendance && attendance.length > 0 ? (() => {
+    const hasDays = attendance.some(w => w.days.length > 0);
+    if (!hasDays) return '';
+    const badges = attendance.map(w => {
+      if (w.days.length === 0) return `<span style="color:#bbb;font-size:10px">${w.label}:없음</span>`;
+      const dayColor = w.label === '이번주' ? '#1565c0' : w.label === '1주전' ? '#388e3c' : '#6a1b9a';
+      return `<span style="color:${dayColor};font-size:10px"><b>${w.label}</b>:${w.days.join('')}</span>`;
+    });
+    return `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;padding:6px 8px;background:#f8f9fa;border-radius:8px;border:1px solid #e0e0e0">📅 ${badges.join(' ')}</div>`;
+  })() : '';
+
+  overlay.className = 'memo-overlay';
+  overlay.innerHTML = `<div class="memo-modal">
+    <h3>📝 ${splitPatientNames(name)}</h3>
+    ${attendHtml}
+    ${tabHtml}
+    ${historyHtml}
+    <textarea id="memoText" placeholder="${memoTabCat} 메모 입력..."></textarea>
+    <div class="btns">
+      <button class="cancel" onclick="closeMemo()">닫기</button>
+      <button class="save" onclick="saveMemo('${name.replace(/'/g,"\\'")}')">저장</button>
+    </div>
+  </div>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeMemo(); });
+  document.body.appendChild(overlay);
+  setTimeout(() => {
+    document.getElementById('memoText').focus();
+    const hist = document.querySelector('.memo-history');
+    if (hist) hist.scrollTop = hist.scrollHeight;
+  }, 100);
+}
+function closeMemo() {
+  const el = document.querySelector('.memo-overlay');
+  if (el) el.remove();
+}
+// ESC 키로 메모창 닫기
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMemo(); });
+async function saveMemo(name) {
+  const text = document.getElementById('memoText').value.trim();
+  if (!text) return;
+  try {
+    const saveCat = (memoTabCat === 'ALL') ? (currentUser.category || 'NDT') : memoTabCat;
+    await api('POST', '/api/memos', { patientName: name, date: currentDate, memo: text, category: saveCat });
+    closeMemo();
+    openMemo(name); // Refresh to show new memo
+  } catch(e) { alert('저장 실패: ' + e.message); }
+}
+async function editMemo(id, name, oldText) {
+  closeMemo();
+  const overlay = document.createElement('div');
+  overlay.className = 'memo-overlay';
+  overlay.innerHTML = `<div class="memo-modal">
+    <h3>✏️ 메모 수정</h3>
+    <textarea id="editMemoText">${oldText}</textarea>
+    <div class="btns">
+      <button class="cancel" onclick="closeMemo();openMemo('${name.replace(/'/g,"\\'")}')">취소</button>
+      <button class="save" onclick="saveEditMemo(${id},'${name.replace(/'/g,"\\'")}')">수정</button>
+    </div>
+  </div>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) { closeMemo(); openMemo(name); }});
+  document.body.appendChild(overlay);
+  setTimeout(() => { const ta = document.getElementById('editMemoText'); ta.focus(); ta.selectionStart = ta.value.length; }, 100);
+}
+async function saveEditMemo(id, name) {
+  const text = document.getElementById('editMemoText').value.trim();
+  if (!text) return;
+  try {
+    await api('PUT', `/api/memos/${id}`, { memo: text });
+    closeMemo();
+    openMemo(name);
+  } catch(e) { alert('수정 실패: ' + e.message); }
+}
+// Extract names WITH their markers (e.g. "김민재f3박병례f3" → [{name:"김민재",marker:"F3"}, ...])
+function extractNamesWithMarkers(text) {
+  text = text.replace(/보호자|보호사/g, ' ');
+  const result = [];
+  const seen = new Set();
+  const parts = text.trim().split(/\s+/);
+  for (const part of parts) {
+    const markerRegex = /([NFMSDnfmsd]\d*)(\([^)]*\))?/g;
+    let lastIdx = 0, m;
+    while ((m = markerRegex.exec(part)) !== null) {
+      const before = part.substring(lastIdx, m.index).replace(/[^가-힣]/g, '');
+      const marker = m[1].toUpperCase();
+      if (before.length >= 2 && !seen.has(before)) { seen.add(before); result.push({name: before, marker}); }
+      lastIdx = markerRegex.lastIndex;
+    }
+    const after = part.substring(lastIdx).replace(/\(도\)/g,'').replace(/[^가-힣]/g, '');
+    if (after.length >= 2 && !seen.has(after)) { seen.add(after); result.push({name: after, marker: null}); }
+  }
+  return result;
+}
+
+// Extract individual patient names from concatenated text
+function extractNames(text) {
+  let names = [];
+  text = text.replace(/보호자|보호사/g, ' ');
+  const parts = text.trim().split(/\s+/);
+  for (const part of parts) {
+    const markerRegex = /[NFMSDnfmsd]\d*(\([^)]*\))?/g;
+    let lastIdx = 0, m;
+    const segments = [];
+    while ((m = markerRegex.exec(part)) !== null) {
+      const before = part.substring(lastIdx, m.index).replace(/[^가-힣]/g, '');
+      if (before.length >= 2) segments.push(before);
+      lastIdx = markerRegex.lastIndex;
+    }
+    const after = part.substring(lastIdx).replace(/\(도\)/g,'').replace(/[^가-힣]/g, '');
+    if (after.length >= 2) segments.push(after);
+    for (const seg of segments) {
+      if (seg.length <= 4) { names.push(seg); }
+      else { for (let i=0;i<seg.length;) { if(i+3<=seg.length){names.push(seg.substring(i,i+3));i+=3;} else if(i+2<=seg.length){names.push(seg.substring(i,i+2));i+=2;} else break; } }
+    }
+  }
+  return [...new Set(names)];
+}
+
+// Split concatenated patient names into clickable individual names
+function splitPatientNames(text) {
+  text = text.replace(/보호자|보호사/g, ' ');
+  let names = [];
+  const parts = text.trim().split(/\s+/);
+  for (const part of parts) {
+    // Remove markers, keep only Korean + positions
+    // Find all marker positions to split
+    const markerRegex = /[NFMSDnfmsd]\d*(\([^)]*\))?/g;
+    let korean = '';
+    let lastIdx = 0;
+    let m;
+    const segments = [];
+    while ((m = markerRegex.exec(part)) !== null) {
+      const before = part.substring(lastIdx, m.index).replace(/[^가-힣]/g, '');
+      if (before.length >= 2) segments.push(before);
+      lastIdx = markerRegex.lastIndex;
+    }
+    const after = part.substring(lastIdx).replace(/\(도\)/g,'').replace(/[^가-힣]/g, '');
+    if (after.length >= 2) segments.push(after);
+    
+    // Each segment might still have concatenated names (e.g. 류효준최재범최영이)
+    for (const seg of segments) {
+      if (seg.length <= 4) {
+        names.push(seg);
+      } else {
+        // Try 3-char split, fallback 2-char for remainder
+        for (let i = 0; i < seg.length; ) {
+          if (i + 3 <= seg.length) { names.push(seg.substring(i, i+3)); i += 3; }
+          else if (i + 2 <= seg.length) { names.push(seg.substring(i, i+2)); i += 2; }
+          else break;
+        }
+      }
+    }
+  }
+  names = [...new Set(names)];
+  if (names.length > 1) {
+    return names.map(n => 
+      `<span class="clickable-name" onclick="closeMemo();openMemo('${n}')" style="cursor:pointer;border-bottom:1px dashed #999;margin:0 2px">${n}</span>`
+    ).join(' · ');
+  }
+  return (names[0] || text.replace(/[NFMSDnfmsd]\d*(\(.*?\))?/g, '').trim());
+}
+
+// Profile menu
+function toggleProfileMenu() {
+  const m = document.getElementById('profileMenu');
+  m.style.display = m.style.display === 'none' ? 'block' : 'none';
+}
+document.addEventListener('click', (e) => {
+  const m = document.getElementById('profileMenu');
+  if (m && !e.target.closest('.user-name')) m.style.display = 'none';
+});
+
+// Change password
+function openChangePassword() {
+  closeMemo();
+  const overlay = document.createElement('div');
+  overlay.className = 'memo-overlay';
+  overlay.innerHTML = `<div class="memo-modal">
+    <h3>🔑 비밀번호 변경</h3>
+    <input type="password" id="oldPw" placeholder="현재 비밀번호" style="width:100%;padding:8px;margin:4px 0;border:1px solid var(--border);border-radius:6px;box-sizing:border-box">
+    <input type="password" id="newPw" placeholder="새 비밀번호" style="width:100%;padding:8px;margin:4px 0;border:1px solid var(--border);border-radius:6px;box-sizing:border-box">
+    <input type="password" id="newPw2" placeholder="새 비밀번호 확인" style="width:100%;padding:8px;margin:4px 0;border:1px solid var(--border);border-radius:6px;box-sizing:border-box">
+    <div class="btns">
+      <button class="cancel" onclick="closeMemo()">취소</button>
+      <button class="save" onclick="doChangePassword()">변경</button>
+    </div>
+  </div>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeMemo(); });
+  document.body.appendChild(overlay);
+}
+async function doChangePassword() {
+  const oldPw = document.getElementById('oldPw').value;
+  const newPw = document.getElementById('newPw').value;
+  const newPw2 = document.getElementById('newPw2').value;
+  if (!oldPw || !newPw) return alert('비밀번호를 입력하세요');
+  if (newPw !== newPw2) return alert('새 비밀번호가 일치하지 않습니다');
+  if (newPw.length < 4) return alert('비밀번호 4자 이상');
+  try {
+    await api('PUT', '/api/user/password', { oldPassword: oldPw, newPassword: newPw });
+    alert('비밀번호가 변경되었습니다');
+    closeMemo();
+  } catch(e) { alert('변경 실패: ' + e.message); }
+}
+
+// Patient search
+function openSearch() {
+  closeMemo();
+  const overlay = document.createElement('div');
+  overlay.className = 'memo-overlay';
+  overlay.innerHTML = `<div class="memo-modal" style="max-height:80vh;display:flex;flex-direction:column">
+    <h3>🔍 환자 검색</h3>
+    <input type="text" id="searchInput" placeholder="환자 이름 입력..." style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;box-sizing:border-box" oninput="doSearch(this.value)">
+    <div id="searchResults" style="flex:1;overflow-y:auto;margin-top:8px;max-height:50vh"></div>
+    <div class="btns"><button class="cancel" onclick="closeMemo()">닫기</button></div>
+  </div>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeMemo(); });
+  document.body.appendChild(overlay);
+  setTimeout(() => document.getElementById('searchInput').focus(), 100);
+}
+async function doSearch(query) {
+  const container = document.getElementById('searchResults');
+  if (!query || query.length < 1) { container.innerHTML = '<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px">이름을 입력하세요</div>'; return; }
+  try {
+    const results = await api('GET', '/api/search/patients?q=' + encodeURIComponent(query));
+    if (results.length === 0) {
+      container.innerHTML = '<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px">검색 결과 없음</div>';
+      return;
+    }
+    container.innerHTML = results.map(r => `
+      <div style="padding:10px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;justify-content:space-between;align-items:center" onclick="closeMemo();openMemo('${r.name.replace(/'/g,"\\'")}')">
+        <div>
+          <div style="font-weight:600;font-size:14px">${r.name}</div>
+          ${r.phone ? '<div style="font-size:11px;color:var(--muted)">📞 ' + r.phone + '</div>' : ''}
+        </div>
+        <div style="text-align:right">
+          ${r.memoCount ? '<span style="font-size:11px;color:var(--primary)">📝 ' + r.memoCount + '건</span>' : ''}
+        </div>
+      </div>
+    `).join('');
+  } catch(e) { container.innerHTML = '<div style="color:var(--danger);font-size:12px">검색 오류</div>'; }
+}
+
+async function deleteMemo(id, name) {
+  if (!confirm('메모를 삭제하시겠습니까?')) return;
+  try {
+    await api('DELETE', `/api/memos/${id}`);
+    closeMemo();
+    openMemo(name);
+  } catch(e) { alert('삭제 실패: ' + e.message); }
+}
+
+// ========== Admin ==========
+let adminUsers = [];
+
+async function renderAdmin() {
+  adminUsers = await api('GET', '/api/admin/users');
+  // Merge therapists from all dates (some columns only exist on certain days)
+  const therapistMap = {};
+  for (const day of Object.values(scheduleData)) {
+    if (!day.therapists) continue;
+    for (const [col, t] of Object.entries(day.therapists)) {
+      if (!therapistMap[col]) therapistMap[col] = t;
+    }
+  }
+  const allTherapists = Object.entries(therapistMap).sort((a, b) => a[0].localeCompare(b[0]));
+
+  let html = `
+    <div class="header">
+      <h1 style="font-size:13px">⚙️ 관리자</h1>
+      <div style="display:flex;gap:6px;margin-left:auto">
+        <button onclick="render()" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer">← 시간표</button>
+        <button onclick="logout()" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer">로그아웃</button>
+      </div>
+    </div>
+    <div class="admin-panel">`;
+
+  // 사용자 관리 — admin만
+  if (currentUser.role === 'admin') {
+    html += '<h2>👥 사용자 관리</h2><div class="user-grid">';
+    for (const user of adminUsers) {
+      const statusLabel = { pending: '⏳대기', approved: '✅승인', rejected: '❌거절' }[user.status];
+      html += `
+        <div class="user-card">
+          <div class="name">${user.display_name} <small style="color:var(--muted)">(${user.username})</small></div>
+          <div class="meta">${statusLabel} · ${user.role} · ${user.category || '미지정'} · ${user.therapist_column ? '열:'+user.therapist_column : '미매핑'}</div>
+          <div class="actions">
+            ${user.status === 'pending' ? `
+              <button class="approve" onclick="approveUser(${user.id})">승인</button>
+              <button class="reject" onclick="rejectUser(${user.id})">거절</button>` : ''}
+            <select onchange="assignTherapist(${user.id}, this.value)">
+              <option value="">치료사 매핑</option>
+              ${allTherapists.map(([col, t]) => `<option value="${col}|${t.category}" ${user.therapist_column === col ? 'selected' : ''}>${t.name} (${t.category})</option>`).join('')}
+            </select>
+            ${user.therapist_column ? `<button style="background:#ff9800;color:#fff" onclick="resetMapping(${user.id})">매핑초기화</button>` : ''}
+            ${user.role !== 'admin' ? `<button class="reject" onclick="deleteUser(${user.id})">삭제</button>` : ''}
+          </div>
+        </div>`;
+    }
+    html += '</div>'; // end user-grid
+  }
+
+  html += `
+      <div class="upload-section">
+        <h2>📁 시간표 업로드</h2>
+        <p style="font-size:12px;color:var(--muted)">월간 시간표 Excel 파일(.xlsx) 업로드</p>
+        <input type="file" id="xlsxFile" accept=".xlsx,.xls">
+        <button onclick="uploadExcel()" style="width:100%;padding:10px;background:var(--primary);color:#fff;border:none;border-radius:8px;margin-top:8px;font-size:13px;cursor:pointer">업로드</button>
+        <div id="upload-result" style="margin-top:8px;font-size:12px"></div>
+      </div>
+    </div>`;
+  document.getElementById('app').innerHTML = html;
+}
+
+async function approveUser(id) { await api('PUT', `/api/admin/users/${id}`, { status: 'approved' }); renderAdmin(); }
+async function rejectUser(id) { await api('PUT', `/api/admin/users/${id}`, { status: 'rejected' }); renderAdmin(); }
+async function assignTherapist(id, val) {
+  if (!val) return;
+  const [col, cat] = val.split('|');
+  await api('PUT', `/api/admin/users/${id}`, { therapistColumn: col, category: cat, status: 'approved' }); renderAdmin();
+}
+async function deleteUser(id) { if (!confirm('정말 삭제하시겠습니까?')) return; await api('DELETE', `/api/admin/users/${id}`); renderAdmin(); }
+async function resetMapping(id) { if (!confirm('치료사 매핑을 초기화하시겠습니까?')) return; await api('PUT', `/api/admin/users/${id}/reset-mapping`); renderAdmin(); }
+async function uploadExcel() {
+  const input = document.getElementById('xlsxFile');
+  if (!input.files[0]) return alert('파일을 선택하세요');
+  const form = new FormData(); form.append('file', input.files[0]);
+  const res = await fetch(API + '/api/admin/upload', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form });
+  const data = await res.json();
+  document.getElementById('upload-result').innerHTML = res.ok ? `✅ ${data.message}` : `❌ ${data.error}`;
+  if (res.ok) await loadSchedule();
+}
+
+async function render() {
+  const payload = parseToken();
+  if (!payload) return renderAuth();
+  currentUser = payload;
+  selectedTherapist = selectedTherapist || currentUser.therapistColumn || null;
+  if (Object.keys(scheduleData).length === 0) await loadSchedule();
+  renderSchedule();
+}
+
+render();
+
+// ── PWA 설치 배너 ──
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  if (!localStorage.getItem('pwa-dismissed')) {
+    document.getElementById('pwa-banner').classList.add('show');
+  }
+});
+
+document.getElementById('pwa-install-btn').addEventListener('click', async () => {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  if (isIOS) {
+    alert('📱 홈 화면 추가 방법\n\n1. 하단 공유 버튼(□↑) 탭\n2. "홈 화면에 추가" 선택\n3. 오른쪽 위 "추가" 탭\n\n설치 후 홈 화면 아이콘으로 열면\n알림 설정이 가능해요!');
+    dismissPwaBanner();
+    return;
+  }
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    dismissPwaBanner();
+  }
+});
+
+function dismissPwaBanner() {
+  document.getElementById('pwa-banner').classList.remove('show');
+  localStorage.setItem('pwa-dismissed', '1');
+}
+
+// 설치 완료 시 배너 숨기기
+window.addEventListener('appinstalled', () => dismissPwaBanner());
+
+// iOS에서 standalone 아닌 경우 배너 표시
+window.addEventListener('load', () => {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isStandalone = window.navigator.standalone;
+  const dismissed = localStorage.getItem('pwa-dismissed');
+  if (isIOS && !isStandalone && !dismissed) {
+    setTimeout(() => {
+      document.getElementById('pwa-banner').classList.add('show');
+    }, 3000);
+  }
+});
+
+// 🍱 점심 채팅 이스터에그
+const LUNCH_EMOJIS = ['😊','😂','🥳','🍕','🍜','🍱','☕','🤣','👍','❤️','🔥','😴'];
+
+async function openLunchChat() {
+  let modal = document.getElementById('lunchChatModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'lunchChatModal';
+    modal.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:flex-end;justify-content:center`;
+    modal.innerHTML = `
+      <div style="background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:500px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div style="padding:16px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:8px;">
+          <span style="font-size:24px">🍱</span>
+          <div>
+            <div style="font-weight:700;font-size:16px">점심 수다방</div>
+            <div style="font-size:11px;color:#999">오늘 하루, 하고 싶은 말 남겨봐요 🤫</div>
+          </div>
+          <button onclick="document.getElementById('lunchChatModal').remove()" style="margin-left:auto;background:none;border:none;font-size:20px;cursor:pointer;color:#999">✕</button>
+        </div>
+        <div id="lunchMsgList" style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;"></div>
+        <div style="padding:10px 12px;border-top:1px solid #eee;">
+          <div id="lunchEmojiPicker" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+            ${LUNCH_EMOJIS.map(e => `<span onclick="selectLunchEmoji('${e}')" style="font-size:20px;cursor:pointer;opacity:0.7;transition:transform 0.1s" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform=''">${e}</span>`).join('')}
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span id="lunchSelectedEmoji" style="font-size:22px">😊</span>
+            <input id="lunchMsgInput" type="text" placeholder="하고 싶은 말..." maxlength="100"
+              style="flex:1;padding:8px 12px;border:1px solid #ddd;border-radius:20px;font-size:14px;outline:none;"
+              onkeydown="if(event.key==='Enter')sendLunchMsg()">
+            <button onclick="sendLunchMsg()" style="padding:8px 16px;background:#ff9800;color:#fff;border:none;border-radius:20px;font-weight:700;cursor:pointer;">전송</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if(e.target===modal) modal.remove(); });
+  }
+  await loadLunchMsgs();
+}
+
+function selectLunchEmoji(e) {
+  document.getElementById('lunchSelectedEmoji').textContent = e;
+}
+
+async function loadLunchMsgs() {
+  const list = document.getElementById('lunchMsgList');
+  if (!list) return;
+  const msgs = await api('GET', '/api/lunch/messages');
+  if (!msgs || msgs.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:#bbb;padding:30px 0;font-size:14px">아직 메시지가 없어요<br>첫 메시지를 남겨보세요! 🍱</div>';
+    return;
+  }
+  const me = currentUser?.displayName || currentUser?.display_name;
+  list.innerHTML = msgs.map(m => {
+    const isMine = m.display_name === me;
+    const time = new Date(m.created_at + 'Z').toLocaleTimeString('ko-KR', {hour:'2-digit',minute:'2-digit'});
+    return `<div style="display:flex;flex-direction:${isMine?'row-reverse':'row'};align-items:flex-end;gap:6px;">
+      <span style="font-size:22px">${m.emoji}</span>
+      <div style="max-width:70%">
+        ${!isMine ? `<div style="font-size:11px;color:#999;margin-bottom:2px;">${m.display_name}</div>` : ''}
+        <div style="background:${isMine?'#ff9800':'#f0f0f0'};color:${isMine?'#fff':'#333'};padding:8px 12px;border-radius:${isMine?'16px 16px 4px 16px':'16px 16px 16px 4px'};font-size:14px;word-break:break-all;">
+          ${m.message}
+        </div>
+        <div style="font-size:10px;color:#bbb;margin-top:2px;text-align:${isMine?'right':'left'}">${time}${isMine?` <span onclick="deleteLunchMsg(${m.id})" style="cursor:pointer;margin-left:6px;opacity:0.6;" title="삭제">🗑️</span>`:''}</div>
+      </div>
+    </div>`;
+  }).join('');
+  // 최신 메시지가 맨 아래 → 자동 스크롤
+  list.scrollTop = list.scrollHeight;
+}
+
+async function sendLunchMsg() {
+  const input = document.getElementById('lunchMsgInput');
+  const emoji = document.getElementById('lunchSelectedEmoji').textContent;
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  await api('POST', '/api/lunch/messages', { message: msg, emoji });
+  await loadLunchMsgs();
+}
+
+async function deleteLunchMsg(id) {
+  await api('DELETE', `/api/lunch/messages/${id}`);
+  await loadLunchMsgs();
+}
+
+// 🎰 복권 모달
+async function openLotteryModal() {
+  let modal = document.getElementById('lotteryModal');
+  if (modal) modal.remove();
+  modal = document.createElement('div');
+  modal.id = 'lotteryModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10000;display:flex;align-items:center;justify-content:center;';
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:20px;width:90%;max-width:340px;padding:28px 24px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.3);">
+      <div style="font-size:48px;margin-bottom:8px">🎰</div>
+      <div style="font-weight:800;font-size:20px;margin-bottom:4px">오늘의 복권</div>
+      <div style="font-size:13px;color:#999;margin-bottom:24px">하루 1번! 긁어서 확인하세요 🤫</div>
+      <div id="lotteryResult" style="min-height:80px;display:flex;align-items:center;justify-content:center;"></div>
+      <button id="lotteryBtn" onclick="drawLottery()" style="margin-top:20px;width:100%;padding:14px;background:linear-gradient(135deg,#ff9800,#f44336);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:800;cursor:pointer;">🎫 긁어보기!</button>
+      <button onclick="document.getElementById('lotteryModal').remove()" style="margin-top:10px;width:100%;padding:10px;background:#f5f5f5;color:#666;border:none;border-radius:12px;font-size:14px;cursor:pointer;">닫기</button>
+      ${currentUser?.role === 'admin' ? `<button onclick="resetMyLottery()" style="margin-top:6px;width:100%;padding:8px;background:none;color:#bbb;border:none;font-size:12px;cursor:pointer;">🔄 내 응모 초기화</button>` : ''}
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if(e.target===modal) modal.remove(); });
+
+  // 오늘 이미 응모했는지 확인
+  const entry = await api('GET', '/api/lunch/lottery/today');
+  if (entry) {
+    document.getElementById('lotteryBtn').disabled = true;
+    document.getElementById('lotteryBtn').style.opacity = '0.5';
+    document.getElementById('lotteryBtn').textContent = '오늘은 이미 응모했어요';
+    showLotteryResult(entry.won === 1, entry.amount, true);
+  }
+}
+
+function showLotteryResult(won, amount, already = false) {
+  const el = document.getElementById('lotteryResult');
+  if (won) {
+    el.innerHTML = `
+      <div>
+        <div style="font-size:48px;animation:bounce 0.5s ease">🎉</div>
+        <div style="font-weight:800;font-size:22px;color:#ff9800;margin:8px 0">당첨!!</div>
+        <div style="font-size:22px;color:#ff9800;font-weight:800;margin-top:4px">💰 1,000원!</div>
+        ${already ? '<div style="font-size:12px;color:#999;margin-top:6px">이미 응모한 결과예요</div>' : ''}
+      </div>`;
+  } else {
+    el.innerHTML = `
+      <div>
+        <div style="font-size:48px">😢</div>
+        <div style="font-weight:700;font-size:18px;color:#666;margin:8px 0">꽝...</div>
+        <div style="font-size:13px;color:#999">내일 다시 도전해요!</div>
+        ${already ? '<div style="font-size:12px;color:#bbb;margin-top:4px">이미 응모한 결과예요</div>' : ''}
+      </div>`;
+  }
+}
+
+async function resetMyLottery() {
+  await api('DELETE', '/api/lunch/lottery/my');
+  document.getElementById('lotteryModal').remove();
+  await openLotteryModal();
+}
+
+async function drawLottery() {
+  const btn = document.getElementById('lotteryBtn');
+  btn.disabled = true;
+  btn.textContent = '🎲 추첨 중...';
+  const el = document.getElementById('lotteryResult');
+  el.innerHTML = '<div style="font-size:40px;animation:spin 0.5s linear infinite">🎰</div>';
+
+  await new Promise(r => setTimeout(r, 1200)); // 두근두근 딜레이
+
+  const result = await api('POST', '/api/lunch/lottery', {});
+  window._lotteryMaxReached = result?.maxReached && !result?.won;
+  if (result?.error === 'outsideHours') {
+    el.innerHTML = `<div><div style="font-size:40px">🕐</div><div style="font-weight:700;font-size:15px;color:#666;margin:8px 0">운영시간이 아닙니다</div><div style="font-size:12px;color:#999;line-height:1.6">📅 평일: 오전 8시 ~ 오후 6시<br>🗓️ 토요일: 오전 8시 ~ 오후 1시</div></div>`;
+    btn.textContent = '운영시간에 다시 도전!';
+    btn.style.opacity = '0.5';
+    return;
+  }
+  if (result?.error === 'notWorking') {
+    el.innerHTML = `<div><div style="font-size:40px">🏖️</div><div style="font-weight:700;font-size:15px;color:#666;margin:8px 0">오늘은 근무일이 아니에요!</div><div style="font-size:13px;color:#999">근무하는 날만 복권 응모 가능해요 😊</div></div>`;
+    btn.textContent = '근무일에 다시 도전!';
+    btn.style.opacity = '0.5';
+    return;
+  }
+  if (result.alreadyDrawn) {
+    btn.textContent = '오늘은 이미 응모했어요';
+    btn.style.opacity = '0.5';
+    showLotteryResult(result.won, result.amount, true);
+    return;
+  }
+  showLotteryResult(result.won, result.amount);
+  btn.textContent = result.won ? '🎉 당첨!!!' : '😢 꽝...';
+  btn.style.opacity = '0.5';
+}
+</script>
+</body>
+</html>

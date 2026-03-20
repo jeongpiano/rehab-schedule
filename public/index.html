@@ -1,0 +1,2713 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<!-- PWA -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#1a73e8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="시간표">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<title>전주E재활 시간표</title>
+<style>
+:root {
+  --primary: #1a73e8;
+  --ndt: #1565c0;
+  --mat: #e65100;
+  --ot: #2e7d32;
+  --bg: #f5f5f5;
+  --card: #fff;
+  --text: #212121;
+  --muted: #757575;
+  --border: #e0e0e0;
+  --danger: #c62828;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text); font-size: 13px; }
+
+/* Auth */
+.auth-container { max-width: 380px; margin: 80px auto; padding: 24px; background: var(--card); border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+.auth-container h2 { text-align: center; margin-bottom: 20px; color: var(--primary); }
+.auth-container input { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 15px; }
+.auth-container button { width: 100%; padding: 12px; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
+.auth-container button:active { opacity: 0.8; }
+.auth-toggle { text-align: center; margin-top: 12px; color: var(--muted); font-size: 14px; }
+.auth-toggle a { color: var(--primary); cursor: pointer; text-decoration: none; }
+.auth-error { color: var(--danger); text-align: center; margin-bottom: 12px; font-size: 14px; }
+
+/* Header — single line */
+.header { background: var(--primary); color: #fff; padding: 10px 10px; position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.header h1 { font-size: 13px; font-weight: 700; white-space: nowrap; }
+.header-nav { display: flex; align-items: center; gap: 6px; }
+.header-nav .current-date { font-size: 14px; font-weight: 700; white-space: nowrap; margin: 0 4px; }
+.header-actions { display: flex; gap: 6px; align-items: center; }
+.header-actions .user-name { font-size: 11px; opacity: 0.85; white-space: nowrap; }
+/* 헤더 버튼 통일 스타일 */
+.hbtn { display: inline-flex; align-items: center; justify-content: center; height: 30px; min-width: 30px; padding: 0 10px; background: rgba(255,255,255,0.22); border: none; color: #fff; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background 0.15s; }
+.hbtn:hover { background: rgba(255,255,255,0.35); }
+.hbtn.active { background: rgba(255,255,255,0.38); }
+.clickable-name { cursor: pointer; border-bottom: 1px dashed rgba(0,0,0,0.3); padding: 1px 0; white-space: nowrap; display: inline-block; }
+
+/* Category tabs — colored backgrounds */
+.tabs { display: flex; gap: 0; background: var(--card); border-bottom: 1px solid var(--border); }
+.tab { flex: 1; padding: 8px; text-align: center; font-size: 13px; font-weight: 600; border: none; background: #f5f5f5; cursor: pointer; border-bottom: 3px solid transparent; color: var(--muted); transition: all 0.15s; box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
+.tab:active { opacity: 0.7; }
+.tab.active { border-bottom-color: var(--primary); color: var(--primary); background: #fff; box-shadow: 0 4px 12px rgba(63,81,181,0.25); }
+.tab.ndt { background: #f0f6ff; color: var(--ndt); box-shadow: 0 3px 8px rgba(25,118,210,0.18); }
+.tab.ndt.active { border-bottom-color: var(--ndt); color: #fff; background: var(--ndt); box-shadow: 0 4px 12px rgba(25,118,210,0.35); }
+.tab.mat { background: #fff5ed; color: var(--mat); box-shadow: 0 3px 8px rgba(230,126,34,0.18); }
+.tab.mat.active { border-bottom-color: var(--mat); color: #fff; background: var(--mat); box-shadow: 0 4px 12px rgba(230,126,34,0.35); }
+.tab.ot { background: #f0f8f1; color: var(--ot); box-shadow: 0 3px 8px rgba(46,125,50,0.18); }
+.tab.ot.active { border-bottom-color: var(--ot); color: #fff; background: var(--ot); box-shadow: 0 4px 12px rgba(46,125,50,0.35); }
+
+/* Stats bar */
+.stats-bar { display: flex; align-items: center; gap: 8px; padding: 6px 12px; font-size: 11px; color: var(--muted); background: var(--card); border-bottom: 1px solid var(--border); position: relative; }
+/* 웹: 배너 가운데, 모바일: 우측 */
+#highlight-banner { position: absolute !important; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+@media (max-width: 768px) {
+  #highlight-banner { left: auto; right: 8px; transform: translateY(-50%); }
+}
+.stat { display: flex; align-items: center; gap: 3px; }
+.stat-dot { width: 7px; height: 7px; border-radius: 50%; }
+.stat-dot.ndt { background: var(--ndt); }
+.stat-dot.mat { background: var(--mat); }
+.stat-dot.ot { background: var(--ot); }
+
+/* Schedule table */
+.schedule-wrap { overflow-y: auto; overflow-x: hidden; padding: 0; max-height: calc(100vh - 120px); }
+.schedule-x-scroll { overflow-x: auto; overflow-y: visible; -webkit-overflow-scrolling: touch; padding: 4px 4px 4px 0; }
+.schedule-table { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 600px; background: var(--card); border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.schedule-table th, .schedule-table td { border: 1px solid var(--border); padding: 4px 5px; text-align: center; vertical-align: middle; }
+.schedule-table thead th { font-size: 12px; font-weight: 700; white-space: nowrap; position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.10); }
+.schedule-table thead th.time-hdr { background: #f0f0f0; min-width: 52px; padding: 3px 4px; position: sticky; left: 0; top: 0; z-index: 20; box-shadow: 2px 2px 5px rgba(0,0,0,0.13); }
+.schedule-table thead th.ndt-hdr { background: #e3f2fd; color: var(--ndt); }
+.schedule-table thead th.mat-hdr { background: #fff3e0; color: var(--mat); }
+.schedule-table thead th.ot-hdr { background: #e8f5e9; color: var(--ot); }
+.schedule-table td.time-cell { background: #f8f9fa; font-weight: 800; font-size: 12px; color: #333; white-space: nowrap; min-width: 52px; padding: 3px 4px; position: sticky; left: 0; z-index: 5; box-shadow: 2px 0 4px rgba(0,0,0,0.08); }
+.schedule-table td.time-cell.pm { background: #fff8e1; }
+.schedule-table td.ndt-cell { background: #f5f9ff; font-size: 12px; min-width: 65px; min-height: 44px; height: 44px; word-break: keep-all; }
+.schedule-table td.mat-cell { background: #fffaf5; font-size: 12px; min-width: 65px; min-height: 44px; height: 44px; word-break: keep-all; }
+.schedule-table td.ot-cell { background: #f5faf6; font-size: 12px; min-width: 65px; min-height: 44px; height: 44px; word-break: keep-all; }
+/* 환자 하이라이트 */
+.schedule-table td.patient-highlight { background: #fff176 !important; outline: 2px solid #f9a825; z-index: 1; position: relative; }
+.schedule-table td.patient-dim { opacity: 0.35; }
+
+.schedule-table td.empty { color: #ddd; }
+.schedule-table td.mine { font-weight: 700; background: #e8eaf6 !important; border: 2px solid var(--primary); }
+
+/* Absence */
+.absence-section { margin: 8px 4px; padding: 10px; background: #ffebee; border-radius: 8px; }
+.absence-section h3 { font-size: 13px; color: var(--danger); margin-bottom: 6px; }
+.absence-list { display: flex; flex-wrap: wrap; gap: 4px; }
+.absence-tag { padding: 3px 7px; background: #fff; border-radius: 5px; font-size: 12px; color: var(--danger); border: 1px solid #ffcdd2; }
+
+.no-data { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 15px; }
+
+/* Admin */
+.admin-panel { padding: 16px; }
+.admin-panel h2 { font-size: 17px; margin-bottom: 14px; }
+.user-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; margin-top: 8px; }
+@media (max-width: 600px) { .user-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; } .user-card .name { font-size: 12px; } .user-card .meta { font-size: 11px; } .user-card select { font-size: 11px; padding: 3px 4px; } .user-card .actions button { padding: 3px 6px; font-size: 11px; } }
+.user-card { background: var(--card); border-radius: 10px; padding: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.user-card .name { font-weight: 700; font-size: 14px; }
+.user-card .meta { font-size: 12px; color: var(--muted); margin-top: 3px; }
+.user-card .actions { margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap; }
+.user-card .actions button { padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); font-size: 12px; cursor: pointer; }
+.user-card .actions button.approve { background: #e8f5e9; color: var(--ot); border-color: var(--ot); }
+.user-card .actions button.reject { background: #ffebee; color: var(--danger); border-color: var(--danger); }
+.user-card select { padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border); font-size: 12px; }
+.upload-section { margin-top: 20px; padding: 16px; background: var(--card); border-radius: 10px; }
+.upload-section input[type=file] { margin: 8px 0; }
+
+/* Mine tab - personal view */
+.my-schedule { padding: 8px; }
+.my-slot { display: flex; background: var(--card); border-radius: 10px; margin-bottom: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.my-time { width: 75px; min-width: 75px; padding: 12px 6px; background: #f8f9fa; font-weight: 700; font-size: 12px; color: var(--muted); display: flex; align-items: center; justify-content: center; border-right: 1px solid var(--border); text-align: center; }
+.my-time.pm { background: #fff8e1; }
+.my-patient { flex: 1; padding: 10px 12px; font-size: 15px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+.my-patient .name { text-align: center; }
+.my-patient .memo-icon { color: var(--muted); font-size: 12px; cursor: pointer; margin-left: 8px; }
+.my-patient .has-memo { color: var(--primary); }
+
+/* 출석체크 — 노란 border/background 완전 덮어씌우기 */
+.schedule-table td.att-checked { position: relative; background: #e3effd !important; border: 2px solid #90bff0 !important; outline: none !important; }
+.schedule-table td.att-checked::after { content: '✓'; position: absolute; top: 1px; right: 3px; font-size: 10px; font-weight: 700; color: #5a9de6; pointer-events: none; }
+
+/* Memo modal */
+.memo-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 200; display: flex; align-items: center; justify-content: center; }
+.memo-overlay.memo-top { align-items: flex-start; padding-top: 5vh; }
+.memo-overlay.memo-bottom { align-items: flex-end; padding-bottom: 5vh; }
+.memo-modal { background: #fff; border-radius: 12px; padding: 20px; width: 90%; max-width: 340px; }
+
+/* 모바일: 메모창 하단/상단 고정 시트 */
+@media (max-width: 600px) {
+  .memo-overlay {
+    top: auto; bottom: 0; left: 0; right: 0;
+    height: auto;
+    background: transparent;
+    align-items: flex-end;
+    pointer-events: none;
+    z-index: 200;
+  }
+  /* 오후 환자 → 상단 배치 */
+  .memo-overlay.memo-top {
+    top: 0; bottom: auto;
+    align-items: flex-start;
+    padding-top: 0;
+  }
+  .memo-modal {
+    pointer-events: auto;
+    width: 100%; max-width: 100%;
+    border-radius: 14px 14px 0 0;
+    padding: 16px;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.22);
+    max-height: 55vh;
+    overflow-y: auto;
+  }
+  .memo-overlay.memo-top .memo-modal {
+    border-radius: 0 0 14px 14px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.22);
+  }
+}
+.memo-modal h3 { font-size: 15px; margin-bottom: 8px; }
+.memo-modal textarea { width: 100%; height: 80px; border: 1px solid var(--border); border-radius: 8px; padding: 8px; font-size: 14px; resize: none; }
+.memo-modal .btns { display: flex; gap: 8px; margin-top: 10px; }
+.memo-modal .btns button { flex: 1; padding: 8px; border-radius: 8px; border: none; font-size: 14px; cursor: pointer; }
+.memo-modal .btns .save { background: var(--primary); color: #fff; }
+.memo-modal .btns .cancel { background: #eee; }
+.memo-history { max-height: 200px; overflow-y: auto; margin-bottom: 8px; border: 1px solid var(--border); border-radius: 8px; }
+.memo-entry { padding: 8px 10px; border-bottom: 1px solid #f0f0f0; font-size: 12px; }
+.memo-entry:last-child { border-bottom: none; }
+.memo-entry .meta { color: var(--muted); font-size: 11px; margin-bottom: 2px; }
+.memo-entry .text { color: var(--text); }
+.memo-entry .del-btn { float: right; color: var(--danger); cursor: pointer; font-size: 11px; }
+
+/* Pinned memos inside memo-history */
+.memo-pinned-section { position: sticky; top: 0; z-index: 2; background: #fffde7; border-bottom: 2px solid #ffd54f; }
+.memo-pinned-section .memo-entry { background: #fffde7; border-bottom: 1px solid #fff9c4; }
+.memo-pinned-section .memo-entry:last-child { border-bottom: none; }
+.pin-btn { cursor: pointer; font-size: 13px; margin-right: 4px; float: right; }
+.count-row td { background: #e3f2fd !important; font-weight: 700; font-size: 12px; color: var(--primary); text-align: center; }
+
+.tab.mine { background: #f3efff; color: #7c4dff; }
+.tab.mine.active { border-bottom-color: #7c4dff; color: #fff; background: #7c4dff; }
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.85; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes bounce {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+  .schedule-table td, .schedule-table th { padding: 3px 3px; font-size: 11px; }
+  .schedule-table td.ndt-cell, .schedule-table td.mat-cell, .schedule-table td.ot-cell { min-width: 55px; min-height: 44px; height: 44px; }
+  /* 모바일: 모든 탭에서 시작=굵게, 끝=회색 2줄 표시 */
+  /* MAT 탭: 스크롤 없이 화면 맞춤 */
+  .tab-mat-active { table-layout: fixed; width: 100%; min-width: unset !important; }
+  .tab-mat-active td.mat-cell, .tab-mat-active th.mat-hdr { min-width: unset !important; width: auto; }
+  .tab-mat-active .clickable-name { white-space: normal; }
+}
+/* PWA 설치 배너 */
+#pwa-banner {
+  display: none;
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999;
+  background: #1a73e8; color: #fff;
+  padding: 12px 16px; font-size: 13px;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.2);
+  align-items: center; gap: 10px;
+}
+#pwa-banner.show { display: flex; }
+#pwa-banner .pwa-text { flex: 1; }
+#pwa-banner .pwa-text b { display: block; font-size: 14px; }
+#pwa-banner .pwa-text span { opacity: 0.85; font-size: 12px; }
+#pwa-banner button { padding: 6px 14px; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; }
+#pwa-banner .btn-install { background: #fff; color: #1a73e8; }
+#pwa-banner .btn-close { background: transparent; color: rgba(255,255,255,0.7); font-size: 18px; padding: 4px 8px; }
+.desktop-only { display: inline; }
+@media (max-width: 600px) { .desktop-only { display: none; } }
+
+/* 드래그 셀 선택 */
+.schedule-table td.drag-selected { outline: 2px solid #f9a825 !important; background: #fff9c4 !important; }
+#drag-count-badge { display:none; position:fixed; bottom:70px; right:16px; z-index:500; background:#333; color:#fff; font-size:13px; font-weight:700; padding:8px 16px; border-radius:20px; box-shadow:0 4px 12px rgba(0,0,0,0.3); pointer-events:none; }
+#drag-count-badge.show { display:block; }
+
+/* 특이사항 모달 */
+#notices-modal { display:none; position:fixed; inset:0; z-index:3000; background:rgba(0,0,0,0.45); }
+#notices-modal.open { display:flex; align-items:center; justify-content:center; padding:16px; }
+#notices-modal-box { background:#fff; border-radius:14px; width:100%; max-width:560px; max-height:82vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,0.22); }
+#notices-modal-box .nm-header { background:var(--primary); color:#fff; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; }
+#notices-modal-box .nm-header h2 { font-size:15px; margin:0; }
+#notices-modal-body { flex:1; overflow-y:auto; padding:14px; }
+.notice-add-form { background:#f8f9ff; border-radius:10px; padding:12px; margin-bottom:14px; border:1px solid #e3e8ff; }
+.notice-add-form input[type=text] { width:100%; padding:8px 10px; border:1px solid #ddd; border-radius:8px; font-size:13px; box-sizing:border-box; margin-bottom:8px; }
+.notice-add-form textarea { width:100%; padding:8px 10px; border:1px solid #ddd; border-radius:8px; font-size:13px; resize:vertical; min-height:64px; box-sizing:border-box; }
+.notice-card { border:1px solid #eee; border-radius:8px; padding:10px 12px; margin-bottom:8px; background:#fff; }
+.notice-card .nc-name { font-weight:700; color:#1976d2; font-size:13px; }
+.notice-card .nc-text { color:#444; font-size:13px; margin:4px 0; word-break:keep-all; }
+.notice-card .nc-meta { font-size:11px; color:#aaa; }
+.notice-card .nc-actions { display:flex; gap:6px; margin-top:6px; }
+.notice-card .nc-actions button { font-size:11px; padding:3px 10px; border-radius:6px; cursor:pointer; border:1px solid; }
+</style>
+</head>
+<body>
+
+<!-- PWA 설치 배너 -->
+<div id="pwa-banner">
+  <div class="pwa-icon">📅</div>
+  <div class="pwa-text">
+    <b>홈 화면에 추가</b>
+    <span>앱처럼 빠르게 접근 + 알림 받기</span>
+  </div>
+  <button class="btn-install" id="pwa-install-btn">설치</button>
+  <button class="btn-close" onclick="dismissPwaBanner()">✕</button>
+</div>
+
+<div id="app"></div>
+<div id="drag-count-badge"></div>
+
+<script>
+let pushSub = null;
+
+function urlB64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(base64);
+  const output = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; ++i) output[i] = raw.charCodeAt(i);
+  return output;
+}
+
+async function enablePush() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+    if (isIOS || isSafari) {
+      alert('📱 iOS Safari 알림 설정 방법\n\n1. 하단 공유 버튼(□↑) 탭\n2. "홈 화면에 추가" 선택\n3. 홈 화면 앱 아이콘으로 열기\n4. 다시 "알림 받기" 탭\n\niOS 16.4 이상에서 지원됩니다.');
+    } else {
+      const isAndroid = /Android/.test(navigator.userAgent);
+      if (isAndroid) {
+        alert('📱 안드로이드 알림 설정 방법\n\n현재 브라우저는 알림을 지원하지 않습니다.\n\n✅ Chrome으로 여는 방법:\n1. 주소 복사: schedule.lesprit.ddnsfree.com\n2. Chrome 앱 열기\n3. 주소창에 붙여넣기 후 접속\n4. 로그인 후 "알림 받기" 탭\n5. "허용" 선택\n\n삼성 인터넷 사용 중이라면\nChrome 설치 후 이용해주세요.');
+      } else {
+        alert('이 브라우저는 푸시 알림을 지원하지 않습니다.\nChrome 또는 Edge 브라우저를 사용해주세요.');
+      }
+    }
+    return;
+  }
+  const perm = await Notification.requestPermission();
+  if (perm !== 'granted') {
+    alert('알림 권한이 필요합니다.');
+    return;
+  }
+
+  try {
+    const reg = await navigator.serviceWorker.register('/sw.js');
+    await navigator.serviceWorker.ready;
+    const { publicKey } = await api('GET', '/api/push/public-key');
+    if (!publicKey) throw new Error('서버에서 VAPID 키를 받지 못했습니다.');
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlB64ToUint8Array(publicKey)
+    });
+    pushSub = sub;
+    const result = await api('POST', '/api/push/subscribe', { subscription: sub });
+    if (result?.error) throw new Error(result.error);
+    alert('✅ 알림이 켜졌습니다!\n(내 스케줄 변경 시 알림이 옵니다)');
+    render();
+  } catch(err) {
+    console.error('Push 등록 오류:', err);
+    alert('❌ 알림 설정 실패\n\n오류: ' + (err.message || err) + '\n\n- HTTPS 주소로 접속했는지 확인\n- 브라우저 알림 차단 여부 확인\n- 홈 화면 추가 후 재시도(iOS)');
+  }
+}
+
+async function disablePush() {
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    const sub = await reg?.pushManager.getSubscription();
+    await sub?.unsubscribe();
+  } catch(e) {}
+  pushSub = null;
+  try { await api('POST', '/api/push/unsubscribe'); } catch(e) {}
+  alert('알림을 껐습니다.');
+  render();
+}
+
+const API = '';
+let token = localStorage.getItem('token');
+let currentUser = null;
+let scheduleData = {};
+let availableDates = [];
+let currentDate = getKSTDateStr();
+let currentTab = 'all';
+let selectedTherapist = null;
+let memoCache = {};
+let scheduleChanges = [];
+let changeKeys = new Set(); // "col:time" for highlight // patientName -> [memos]
+
+// ===== 출석체크 =====
+let attCheckedCells = new Set(); // key: "col:time"
+let _rightClickFired = false; // contextmenu → highlightPatient 차단용
+
+async function toggleAttendanceTd(td) {
+  if (!td || !td.dataset.attKey) return;
+  const key = td.dataset.attKey;
+  // 낙관적 UI 업데이트
+  if (attCheckedCells.has(key)) {
+    attCheckedCells.delete(key);
+    td.classList.remove('att-checked');
+  } else {
+    attCheckedCells.add(key);
+    td.classList.add('att-checked');
+    navigator.vibrate?.(15);
+  }
+  // 서버 저장 (SSE 브로드캐스트까지 처리)
+  try {
+    await api('POST', '/api/attendance', { date: currentDate, att_key: key });
+  } catch(e) {
+    console.error('출석체크 저장 실패', e);
+    // 실패 시 롤백
+    if (attCheckedCells.has(key)) { attCheckedCells.delete(key); td.classList.remove('att-checked'); }
+    else { attCheckedCells.add(key); td.classList.add('att-checked'); }
+  }
+}
+
+async function loadAttendance() {
+  try {
+    const keys = await api('GET', `/api/attendance?date=${currentDate}`);
+    attCheckedCells = new Set(keys);
+    applyAttendanceToDOM();
+  } catch(e) { console.error('출석체크 로드 실패', e); }
+}
+
+function isAttKeyPM(attKey) {
+  // att_key 형식: "col:time" (예: "B:9:00 - 9:30")
+  const timeStr = attKey.substring(attKey.indexOf(':') + 1);
+  return isPM(timeStr);
+}
+
+async function clearAMAttendance() {
+  const checked = [...attCheckedCells].filter(k => !isAttKeyPM(k));
+  if (checked.length === 0) return;
+  if (!confirm(`오전 출석체크 ${checked.length}개를 모두 해제할까요?`)) return;
+  for (const key of checked) {
+    const td = document.querySelector('td[data-att-key="' + key.replace(/"/g, '\\"') + '"]');
+    if (td) await toggleAttendanceTd(td);
+  }
+}
+
+async function clearPMAttendance() {
+  const checked = [...attCheckedCells].filter(k => isAttKeyPM(k));
+  if (checked.length === 0) return;
+  if (!confirm(`오후 출석체크 ${checked.length}개를 모두 해제할까요?`)) return;
+  for (const key of checked) {
+    const td = document.querySelector('td[data-att-key="' + key.replace(/"/g, '\\"') + '"]');
+    if (td) await toggleAttendanceTd(td);
+  }
+}
+
+function applyAttendanceToDOM() {
+  document.querySelectorAll('td[data-att-key]').forEach(td => {
+    if (attCheckedCells.has(td.dataset.attKey)) td.classList.add('att-checked');
+    else td.classList.remove('att-checked');
+  });
+}
+
+// SSE는 connectSSE()에서 통합 관리
+let _sseSource = null;
+
+// 마지막으로 누른 마우스 버튼 추적 (mousedown은 항상 click보다 먼저 발생)
+let _lastMouseBtn = 0;
+let _suppressHighlightClick = false; // 롱프레스/우클릭 후 synthetic click 차단
+document.addEventListener('mousedown', (e) => { _lastMouseBtn = e.button; }, true);
+
+function setupAttendanceDrag() {
+  const table = document.querySelector('.schedule-table');
+  if (!table) return;
+  // contextmenu = 우클릭의 정확한 이벤트, 단순하고 확실
+  table.addEventListener('contextmenu', (e) => {
+    const td = e.target.closest('td[data-att-key]');
+    if (!td) return;
+    e.preventDefault();
+    e.stopPropagation();
+    // 우클릭 후 발생할 수 있는 synthetic click에서 highlight 차단
+    _suppressHighlightClick = true;
+    setTimeout(() => _suppressHighlightClick = false, 300);
+    toggleAttendanceTd(td);
+  });
+}
+
+async function api(method, url, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (token) opts.headers.Authorization = `Bearer ${token}`;
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(API + url, opts);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'API 오류');
+  return data;
+}
+
+async function login(username, password) {
+  const data = await api('POST', '/api/login', { username, password });
+  token = data.token;
+  currentUser = data.user;
+  localStorage.setItem('token', token);
+  selectedTherapist = currentUser.therapistColumn || null;
+  await loadSchedule();
+  await loadChanges();
+  connectSSE();
+  // Preload current push subscription status (best-effort)
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    pushSub = await reg?.pushManager.getSubscription();
+  } catch(e) {}
+  render();
+}
+
+function connectSSE() {
+  if (_sseSource) { _sseSource.close(); _sseSource = null; }
+  try {
+    const es = new EventSource(API + '/api/events?token=' + token);
+    _sseSource = es;
+    es.onmessage = async (e) => {
+      const data = JSON.parse(e.data);
+      if (data.type === 'change') {
+        scheduleChanges = data.changes;
+        changeKeys = new Set(data.changes.map(c => c.col + ':' + c.time));
+        await loadSchedule();
+        render();
+      }
+      // 출석체크 실시간 동기화
+      if (data.type === 'attendance' && data.date === currentDate) {
+        const { att_key, checked } = data;
+        const td = document.querySelector('td[data-att-key="' + att_key.replace(/"/g, '\\"') + '"]');
+        if (checked) { attCheckedCells.add(att_key); td?.classList.add('att-checked'); }
+        else { attCheckedCells.delete(att_key); td?.classList.remove('att-checked'); }
+      }
+    };
+    es.onerror = () => { _sseSource = null; setTimeout(connectSSE, 30000); es.close(); };
+  } catch(e) {}
+}
+
+async function loadChanges() {
+  try {
+    scheduleChanges = await api('GET', '/api/changes');
+    changeKeys = new Set(scheduleChanges.map(c => c.col + ':' + c.time));
+  } catch(e) {}
+}
+
+function closeChanges() {
+  const el = document.getElementById('changesOverlay');
+  if (el) el.remove();
+}
+
+function showChanges() {
+  closeChanges();
+  const items = (scheduleChanges || []).slice(0, 200);
+  const htmlItems = items.map(c => {
+    const time = c.time === '결석' ? '결석' : c.time;
+    return `<div style="padding:10px 12px;border-bottom:1px solid #eee">
+      <div style="font-weight:800;font-size:13px">${time} · ${c.therapist || ''}</div>
+      <div style="color:#666;font-size:12px;margin-top:4px">${escapeHtml(c.oldText)} → <b>${escapeHtml(c.newText)}</b></div>
+    </div>`;
+  }).join('') || '<div style="padding:14px;color:#666">변경사항 없음</div>';
+
+  const overlay = document.createElement('div');
+  overlay.id = 'changesOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;display:flex;align-items:flex-end;justify-content:center';
+  overlay.innerHTML = `
+    <div style="width:100%;max-width:520px;background:#fff;border-radius:14px 14px 0 0;max-height:70vh;overflow:auto;box-shadow:0 -6px 18px rgba(0,0,0,0.2)">
+      <div style="position:sticky;top:0;background:#fff;padding:12px 14px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center">
+        <div style="font-weight:900">🔔 당일 변경 ${items.length}건</div>
+        <button onclick="closeChanges()" style="border:none;background:#eee;border-radius:8px;padding:6px 10px">닫기</button>
+      </div>
+      ${htmlItems}
+    </div>`;
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeChanges(); });
+  document.body.appendChild(overlay);
+}
+
+function escapeHtml(s) {
+  return (s || '').toString()
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'",'&#39;');
+}
+
+async function register(username, password, displayName) {
+  await api('POST', '/api/register', { username, password, displayName });
+  alert('가입 완료! 관리자 승인 후 사용 가능합니다.');
+  renderAuth('login');
+}
+
+function logout() {
+  token = null; currentUser = null; localStorage.removeItem('token'); render();
+}
+
+function getKSTDateStr() {
+  // Asia/Seoul 기준 YYYY-MM-DD
+  return new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+}
+
+
+function parseToken() {
+  if (!token) return null;
+  try {
+    // UTF-8 safe base64 decode for Korean characters
+    const b64 = token.split('.')[1];
+    const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+    const payload = JSON.parse(new TextDecoder().decode(bytes));
+    if (payload.exp * 1000 < Date.now()) { logout(); return null; }
+    return payload;
+  } catch { logout(); return null; }
+}
+
+async function loadSchedule() {
+  try {
+    scheduleData = await api('GET', '/api/schedule');
+    // Load history dates and merge
+    try {
+      const histDates = await api('GET', '/api/schedule/history');
+      const allDates = new Set([...Object.keys(scheduleData), ...histDates]);
+      availableDates = [...allDates].sort();
+    } catch(e) {
+      availableDates = Object.keys(scheduleData).sort();
+    }
+    if (!scheduleData[currentDate]) {
+      const today = new Date().toISOString().split('T')[0];
+      const future = availableDates.filter(d => d >= today);
+      currentDate = future[0] || availableDates[availableDates.length - 1] || currentDate;
+    }
+  } catch (e) { console.error('Schedule load error:', e); }
+}
+
+async function navigateDate(dir) {
+  const idx = availableDates.indexOf(currentDate);
+  const newIdx = idx + dir;
+  if (newIdx >= 0 && newIdx < availableDates.length) {
+    currentDate = availableDates[newIdx];
+    // Load from history if not in current scheduleData
+    if (!scheduleData[currentDate]) {
+      try {
+        const histData = await api('GET', '/api/schedule/history/' + currentDate);
+        scheduleData[currentDate] = histData;
+      } catch(e) {}
+    }
+    render();
+  }
+}
+
+function openDatePicker() {
+  closeMemo();
+  const d = new Date(currentDate);
+  let calYear = d.getFullYear(), calMonth = d.getMonth();
+  
+  function renderCal() {
+    const today = new Date().toISOString().split('T')[0];
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    const firstDay = new Date(calYear, calMonth, 1).getDay(); // 0=Sun
+    const monthNames = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+    
+    let grid = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:12px;min-height:240px">';
+    ['일','월','화','수','목','금','토'].forEach((d,i) => {
+      const color = i===0?'#c62828':i===6?'#1565c0':'#666';
+      grid += `<div style="font-weight:700;padding:4px;color:${color}">${d}</div>`;
+    });
+    // 6 rows always (42 cells) for consistent height
+    const totalCells = 42;
+    for (let i = 0; i < firstDay; i++) grid += '<div></div>';
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const isToday = dateStr === today;
+      const isCurrent = dateStr === currentDate;
+      const hasData = availableDates.includes(dateStr);
+      const dow = new Date(calYear, calMonth, day).getDay();
+      let bg = 'transparent', fg = dow===0?'#c62828':dow===6?'#1565c0':'#333';
+      if (isCurrent) { bg = 'var(--primary)'; fg = '#fff'; }
+      else if (isToday) { bg = '#e3f2fd'; }
+      const opacity = hasData ? '1' : '0.3';
+      const cursor = hasData ? 'pointer' : 'default';
+      grid += `<div onclick="${hasData ? `selectCalDate('${dateStr}')` : ''}" style="padding:6px 2px;border-radius:6px;background:${bg};color:${fg};opacity:${opacity};cursor:${cursor};font-weight:${isToday||isCurrent?'700':'400'}">${day}</div>`;
+    }
+    // Pad remaining cells for 6 rows
+    const usedCells = firstDay + daysInMonth;
+    for (let i = usedCells; i < totalCells; i++) grid += '<div></div>';
+    grid += '</div>';
+    
+    document.getElementById('calGrid').innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <button onclick="calNav(-1)" style="border:none;background:rgba(0,0,0,0.05);padding:6px 12px;border-radius:6px;font-size:14px;cursor:pointer">◀</button>
+        <span style="font-weight:700;font-size:15px">${calYear}년 ${monthNames[calMonth]}</span>
+        <button onclick="calNav(1)" style="border:none;background:rgba(0,0,0,0.05);padding:6px 12px;border-radius:6px;font-size:14px;cursor:pointer">▶</button>
+      </div>
+      ${grid}
+    `;
+  }
+  
+  window.calNav = function(dir) { calMonth += dir; if (calMonth < 0) { calMonth = 11; calYear--; } if (calMonth > 11) { calMonth = 0; calYear++; } renderCal(); };
+  window.selectCalDate = function(dateStr) { closeMemo(); jumpToDateStr(dateStr); };
+  
+  const overlay = document.createElement('div');
+  overlay.className = 'memo-overlay';
+  overlay.innerHTML = `<div class="memo-modal" style="max-width:320px"><div id="calGrid"></div><div class="btns" style="margin-top:8px"><button class="cancel" onclick="closeMemo()">닫기</button><button class="save" onclick="closeMemo();goToday()">오늘</button></div></div>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeMemo(); });
+  document.body.appendChild(overlay);
+  renderCal();
+}
+
+async function jumpToDateStr(dateVal) {
+  if (!dateVal) return;
+  if (scheduleData[dateVal]) { currentDate = dateVal; render(); return; }
+  try {
+    const histData = await api('GET', '/api/schedule/history/' + dateVal);
+    scheduleData[dateVal] = histData;
+    currentDate = dateVal;
+    render();
+  } catch(e) { alert('해당 날짜 데이터가 없습니다: ' + dateVal); }
+}
+
+function goToday() {
+  // KST 기준 오늘로 이동
+  const today = getKSTDateStr();
+  const nearest = availableDates.reduce((prev, curr) =>
+    Math.abs(new Date(curr) - new Date(today)) < Math.abs(new Date(prev) - new Date(today)) ? curr : prev
+  , availableDates[0]);
+  currentDate = nearest || today;
+  render();
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  const days = ['일','월','화','수','목','금','토'];
+  return `${d.getMonth()+1}/${d.getDate()} (${days[d.getDay()]})`;
+}
+
+function isPM(timeStr) {
+  // 1:40 이후 = 오후
+  const h = parseInt(timeStr.split(':')[0]);
+  const m = parseInt(timeStr.split(':')[1]) || 0;
+  if (h >= 13) return true;
+  if (h >= 1 && h <= 5) return true;  // 1:40~5:35
+  return false;
+}
+
+function renderAuth(mode = 'login') {
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="auth-container">
+      <h2>🏥 전주E재활 시간표</h2>
+      <div id="auth-error" class="auth-error"></div>
+      ${mode === 'login' ? `
+        <input id="username" placeholder="아이디" autocomplete="username">
+        <input id="password" type="password" placeholder="비밀번호" autocomplete="current-password">
+        <button onclick="handleLogin()">로그인</button>
+        <div class="auth-toggle"><a onclick="renderAuth('register')">계정이 없으신가요? 가입하기</a></div>
+      ` : `
+        <input id="displayName" placeholder="이름 (예: 김서현)">
+        <input id="username" placeholder="아이디">
+        <input id="password" type="password" placeholder="비밀번호">
+        <button onclick="handleRegister()">가입 신청</button>
+        <div class="auth-toggle"><a onclick="renderAuth('login')">이미 계정이 있으신가요? 로그인</a></div>
+      `}
+    </div>`;
+  setTimeout(() => {
+    document.querySelectorAll('.auth-container input').forEach(input => {
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') mode === 'login' ? handleLogin() : handleRegister(); });
+    });
+  }, 0);
+}
+
+async function handleLogin() {
+  const u = document.getElementById('username').value;
+  const p = document.getElementById('password').value;
+  try { await login(u, p); } catch (e) { document.getElementById('auth-error').textContent = e.message; }
+}
+
+async function handleRegister() {
+  const n = document.getElementById('displayName').value;
+  const u = document.getElementById('username').value;
+  const p = document.getElementById('password').value;
+  try { await register(u, p, n); } catch (e) { document.getElementById('auth-error').textContent = e.message; }
+}
+
+function renderSchedule() {
+  const dayData = scheduleData[currentDate];
+
+  // Get therapists for current tab
+  let therapists = [];
+  if (dayData) {
+    therapists = Object.entries(dayData.therapists || {});
+    if (currentTab !== 'all') {
+      therapists = therapists.filter(([_, t]) => t.category === currentTab);
+    }
+    // 허유선(J) 로그인 시 → J, K(F3), L(FES) 모두 표시
+    if (currentUser.therapistColumn === 'J' && currentTab === 'all') {
+      // already shows all
+    } else if (currentUser.therapistColumn === 'J' && currentTab !== 'MAT') {
+      // 다른 탭에서도 MAT 3열 포함
+      const matCols = Object.entries(dayData.therapists || {}).filter(([_, t]) => t.category === 'MAT');
+      const existing = new Set(therapists.map(([c]) => c));
+      for (const mc of matCols) {
+        if (!existing.has(mc[0])) therapists.push(mc);
+      }
+    }
+  }
+
+  // Count — 마커 기준: N+숫자→N, M/F+숫자→M, S/D or OT컬럼 마커없음→O
+  let ndtCount = 0, matCount = 0, otCount = 0;
+  if (dayData) {
+    dayData.timeSlots.forEach(slot => {
+      Object.entries(slot.patients).forEach(([col, p]) => {
+        const text = (p.text || '').trim();
+        if (!text) return;
+        const colCat = p.category; // NDT / MAT / OT (컬럼 기반)
+        // 셀 텍스트에서 이름+마커 토큰 추출 (한글 2~4자 + 선택적 마커+숫자)
+        const tokens = text.match(/[\uAC00-\uD7AF]{2,4}[NnMmFfSsDd]?\d*/g) || [];
+        tokens.forEach(token => {
+          if (/[Nn]\d/.test(token)) ndtCount++;
+          else if (/[Mm]\d/.test(token)) matCount++;
+          else if (/[SsDd](\d|$)/.test(token.slice(-3))) otCount++;
+          else if (colCat === 'OT') otCount++; // OT컬럼 마커없는 이름
+          // NDT/MAT컬럼에 마커없는 이름 → 카운트 안 함
+        });
+      });
+    });
+  }
+
+  let html = `
+    <div class="header">
+      <h1 onclick="openNoticesModal()" style="cursor:pointer;user-select:none">🏥 E재활<span class="desktop-only" style="font-weight:400;font-size:11px;opacity:0.85"> (환자 특이사항)</span></h1>
+      <div class="header-nav">
+        <button class="hbtn" onclick="navigateDate(-1)">◀</button>
+        <button class="hbtn current-date" onclick="openDatePicker()" style="font-weight:700">${formatDate(currentDate)}</button>
+        <button class="hbtn" onclick="navigateDate(1)">▶</button>
+        <button class="hbtn" onclick="goToday()">오늘</button>
+      </div>
+      <div class="header-actions">
+        ${scheduleChanges.length > 0 ? `<button class="hbtn" onclick="showChanges()" style="background:rgba(255,200,0,0.85);color:#333;animation:pulse 2s infinite;padding:0 6px;min-width:24px;font-size:11px">🔔${scheduleChanges.length}</button>` : ''}
+        <button class="hbtn" onclick="openSearch()" style="padding:0 6px;min-width:24px">🔍</button>
+        ${(currentUser.role === 'admin' || currentUser.role === 'manager') ? '<button class="hbtn" onclick="renderAdmin()" style="padding:0 6px;font-size:11px">관리</button>' : ''}
+        <span class="user-name" onclick="toggleProfileMenu()" style="cursor:pointer;position:relative;font-size:11px">👤▾
+          <div id="profileMenu" style="display:none;position:absolute;right:0;top:24px;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);min-width:140px;z-index:200">
+            <div style="padding:10px 14px;font-size:12px;color:#333;border-bottom:1px solid #eee" onclick="openChangePassword()">🔑 비밀번호 변경</div>
+            <div style="padding:10px 14px;font-size:12px;color:#333;border-bottom:1px solid #eee" onclick="enablePush()">🔔 알림 켜기(본인)</div>
+            <div style="padding:10px 14px;font-size:12px;color:#333;border-bottom:1px solid #eee" onclick="disablePush()">🔕 알림 끄기</div>
+            <div style="padding:10px 14px;font-size:12px;color:#c62828" onclick="logout()">↩ 로그아웃</div>
+          </div>
+        </span>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab ${currentTab==='all'?'active':''}" onclick="setTab('all')">전체</button>
+      <button class="tab ndt ${currentTab==='NDT'?'active':''}" onclick="setTab('NDT')">NDT</button>
+      <button class="tab mat ${currentTab==='MAT'?'active':''}" onclick="setTab('MAT')">MAT</button>
+      <button class="tab ot ${currentTab==='OT'?'active':''}" onclick="setTab('OT')">OT</button>
+      ${currentUser.therapistColumn ? `<button class="tab mine ${currentTab==='mine'?'active':''}" onclick="setTab('mine')">👤 본인</button>` : ''}
+    </div>
+    <div class="stats-bar">
+      <div class="stat"><span class="stat-dot ndt"></span> N : ${ndtCount}</div>
+      <div class="stat"><span class="stat-dot mat"></span> M : ${matCount}</div>
+      <div class="stat"><span class="stat-dot ot"></span> O : ${otCount}</div>
+      <div id="highlight-banner" onclick="clearHighlight()" style="visibility:hidden;background:rgba(255,255,255,0.95);color:#333;font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;cursor:pointer;white-space:nowrap;z-index:50;display:inline-flex;align-items:center;gap:5px;box-shadow:0 1px 4px rgba(0,0,0,0.18);border:1px solid #e0e0e0"><span id="highlight-banner-name" style="font-weight:700;margin-right:2px"></span><span id="highlight-banner-badges" style="display:inline-flex;gap:4px;align-items:center"></span><span style="color:#aaa;margin-left:3px">✕</span></div>
+    </div>`;
+
+  // "본인" 탭 렌더링
+  if (currentTab === 'mine' && dayData && currentUser.therapistColumn) {
+    const myCol = currentUser.therapistColumn;
+    const myTherapist = dayData.therapists[myCol];
+    // 허유선(J)이면 J,K,L 모두 표시
+    const myCols = myCol === 'J' ? ['J','K','L'] : [myCol];
+
+    html += `<div class="my-schedule">`;
+    let prevPM = false;
+    for (const slot of dayData.timeSlots) {
+      const pm = isPM(slot.time);
+      if (pm && !prevPM) {
+        html += `<div style="background:#ff9800;color:#fff;text-align:center;font-weight:700;font-size:12px;padding:6px 0;border-radius:8px;margin:6px 0;display:flex;align-items:center;justify-content:center;gap:20px;"><span onclick="openLotteryModal()" title="" style="cursor:pointer;display:inline-block;">🍚</span><span onclick="openLunchChat()" style="cursor:pointer;">점심시간</span></div>`;
+      }
+      prevPM = pm;
+
+      // Collect patients from my columns
+      const myPatients = [];
+      for (const c of myCols) {
+        if (slot.patients[c]) myPatients.push({col: c, ...slot.patients[c]});
+      }
+
+      const timeLabel = slot.time.replace('-', '~');
+      if (myPatients.length === 0) {
+        // Show empty slot
+        html += `<div class="my-slot" style="opacity:0.4">
+          <div class="my-time ${pm?'pm':''}">${timeLabel}</div>
+          <div class="my-patient"><span class="name" style="color:var(--muted)">—</span></div>
+        </div>`;
+      } else {
+        for (const p of myPatients) {
+          // cleanPN: 메모 키는 이름만 (F3 등 마커 제거), 표시는 p.text 그대로 (F3 보임)
+          const cleanPN = extractNames(p.text)[0] || p.text.replace(/\s*[NFMSDnfmsd]\d*(\(.*?\))?/g,'').replace(/\(도\)/g,'').trim();
+          const hasMemo = memoCache[cleanPN] && memoCache[cleanPN].length > 0;
+          const myTagBg = p.tag ? `background:${tagBg(p.tag)};border-radius:6px;padding:1px 4px;` : '';
+          html += `<div class="my-slot" oncontextmenu="openMemo('${cleanPN.replace(/'/g,"\\'")}');return false;" ontouchstart="startLongPress('${cleanPN.replace(/'/g,"\\'")}')" ontouchend="cancelLongPress()" ontouchmove="cancelLongPress()">
+            <div class="my-time ${pm?'pm':''}">${timeLabel}</div>
+            <div class="my-patient">
+              <span class="name" style="${myTagBg}" title="${p.tag||''}">${p.text}</span>
+              <span class="memo-icon ${hasMemo?'has-memo':''}" onclick="openMemo('${cleanPN.replace(/'/g,"\\'")}')">${hasMemo?'📝':'✏️'}</span>
+            </div>
+          </div>`;
+        }
+      }
+    }
+
+    // My absences
+    const absByCol = dayData.absencesByCol || {};
+    const myAbsences = [];
+    for (const c of myCols) {
+      myAbsences.push(...(absByCol[c] || []));
+    }
+    if (myAbsences.length > 0) {
+      html += `<div class="absence-section"><h3>⚠️ 내 결석환자 (${myAbsences.length}명)</h3>
+        <div class="absence-list">${myAbsences.map(n => {
+          const cleanN = n.replace(/[NFMSD]\d*(\(.*?\))?/g,'').replace(/\(도\)/g,'').trim();
+          return `<span class="absence-tag" style="cursor:pointer" onclick="memoTabCat='ETC';openMemo('${cleanN.replace(/'/g,"\\'")}',null,true)">${n}</span>`;
+        }).join('')}</div></div>`;
+    }
+    html += '</div>';
+    document.getElementById('app').innerHTML = html;
+    return;
+  }
+
+  if (!dayData || therapists.length === 0) {
+    html += '<div class="no-data">📋 해당 날짜 시간표가 없습니다</div>';
+  } else {
+    // Build table: columns = therapists, rows = time slots
+    const matClass = currentTab === 'MAT' ? ' tab-mat-active' : '';
+    html += `<div class="schedule-wrap"><div class="schedule-x-scroll"><table class="schedule-table${matClass}" oncontextmenu="return false;"><thead><tr>`;
+    html += '<th class="time-hdr">시간</th>';
+    for (const [col, t] of therapists) {
+      const cat = t.category.toLowerCase();
+      html += `<th class="${cat}-hdr">${t.name}</th>`;
+    }
+    html += '</tr></thead><tbody>';
+
+    let prevPM = false;
+    let addedPMClear = false;
+    let hasPMSlots = dayData.timeSlots.some(s => isPM(s.time));
+    for (const slot of dayData.timeSlots) {
+      const pm = isPM(slot.time);
+      // 오전→오후 전환 시 구분선
+      if (pm && !prevPM) {
+        html += `<tr><td class="time-cell" onclick="clearAMAttendance()" style="cursor:pointer;background:#fff9c4;color:#e65100;font-size:10px;font-weight:800;text-align:center;padding:4px 2px;">✕ 오전<br>해제</td><td colspan="${therapists.length}" style="background:#ff9800;color:#fff;text-align:center;font-weight:700;font-size:12px;padding:4px 0;"><span onclick="openLotteryModal()" style="cursor:pointer;display:inline-block;margin-right:16px;">🍚</span><span onclick="openLunchChat()" style="cursor:pointer;">점심시간</span></td></tr>`;
+      }
+      prevPM = pm;
+      const timeParts = slot.time.split(/\s*-\s*/);
+      const tStart = timeParts[0];
+      const tEnd = timeParts[1] || '';
+      const timeDisplay = tEnd
+        ? `${tStart}<span class="time-end-part"><br><span style="font-size:10px;font-weight:400;color:#bbb">${tEnd}</span></span>`
+        : tStart;
+      // 5:05 슬롯이면 시간 셀에 "✕ 오후 해제" 추가
+      const slotHourX = parseInt(slot.time.split(':')[0]);
+      const slotMinX  = parseInt(slot.time.split(':')[1]) || 0;
+      html += `<tr><td class="time-cell ${pm ? 'pm' : ''} tab-${currentTab}">${timeDisplay}</td>`;
+      for (const [col, t] of therapists) {
+        const p = slot.patients[col];
+        const cat = t.category.toLowerCase();
+        const isMine = currentUser.therapistColumn === col;
+        if (p) {
+          const memoCat = cat.toUpperCase();
+          // Use splitPatientNames logic to extract individual names
+          const names = extractNames(p.text);
+          const isChanged = changeKeys.has(col + ':' + slot.time);
+          const tagColor = p.tag ? `background:${tagBg(p.tag)};` : '';
+          const changeBg = isChanged ? 'background:#fff9c4;border:2px solid #fbc02d;' : tagColor;
+          if (names.length > 1) {
+            const namesWithM = extractNamesWithMarkers(p.text);
+            const cellContent = namesWithM.map(({name, marker}) => {
+              const hasMemo = memoCache[name] && memoCache[name].length > 0;
+              const displayLabel = marker ? `${name} ${marker}` : name;
+              return `<span class="clickable-name" onclick="highlightPatient('${name.replace(/'/g,"\\'")}',event,'${memoCat}');event.stopPropagation()">${displayLabel}${hasMemo?' 📝':''}</span>`;
+            }).join(' ');
+            const namesJson = JSON.stringify(names).replace(/"/g,'&quot;');
+            html += `<td class="${cat}-cell ${isMine ? 'mine' : ''}" style="${changeBg}" title="${p.tag||''}" data-patients="${namesJson}" data-att-key="${col}:${slot.time}" onclick="highlightPatient('${names[0].replace(/'/g,"\\'")}',event,'${memoCat}');return false;" ontouchstart="startLongPress('${names[0].replace(/'/g,"\\'")}','${memoCat}',event)" ontouchend="cancelLongPress()" ontouchmove="cancelLongPress()">${cellContent}</td>`;
+          } else {
+            const pName = names[0] || p.text.replace(/\s*[NFMSDnfmsd]\d*(\(.*?\))?/g,'').replace(/\(도\)/g,'').trim();
+            const hasMemo = memoCache[pName] && memoCache[pName].length > 0;
+            const namesJson = JSON.stringify(names.length ? names : [pName]).replace(/"/g,'&quot;');
+            html += `<td class="${cat}-cell ${isMine ? 'mine' : ''}" data-patients="${namesJson}" data-att-key="${col}:${slot.time}" onclick="highlightPatient('${pName.replace(/'/g,"\\'")}',event,'${memoCat}');return false;" ontouchstart="startLongPress('${pName.replace(/'/g,"\\'")}','${memoCat}',event)" ontouchend="cancelLongPress()" ontouchmove="cancelLongPress()" style="cursor:pointer;${changeBg}" title="${p.tag||''}">${p.text}${hasMemo?' 📝':''}</td>`;
+          }
+        } else {
+          html += `<td class="${cat}-cell empty ${isMine ? 'mine' : ''}"></td>`;
+        }
+      }
+      html += '</tr>';
+      // 5:05 슬롯 다음에 "오후 해제" 행 삽입
+      if (!addedPMClear && pm) {
+        const slotHour = parseInt(slot.time.split(':')[0]);
+        const slotMin  = parseInt(slot.time.split(':')[1]) || 0;
+        if (slotHour === 5 && slotMin >= 5) {
+          addedPMClear = true;
+        }
+      }
+    }
+
+    // Patient count row — NDT tab: N+M count, OT tab: slot count
+    const excelCounts = dayData.patientCounts || {};
+    if (currentTab === 'NDT' || currentTab === 'OT' || currentTab === 'all') {
+      const clearFn = hasPMSlots ? 'clearPMAttendance()' : 'clearAMAttendance()';
+      const clearLabel = hasPMSlots ? '✕ 오후<br>해제' : '✕ 오전<br>해제';
+      html += `<tr class="count-row"><td class="time-cell" onclick="${clearFn}" style="background:#fff9c4;color:#e65100;font-size:10px;font-weight:800;text-align:center;cursor:pointer;padding:4px 2px;">${clearLabel}</td>`;
+      for (const [col, t] of therapists) {
+        // Skip MAT columns (J, K, L)
+        if (['J','K','L'].includes(col)) {
+          html += `<td style="background:#e3f2fd"></td>`;
+          continue;
+        }
+        const count = excelCounts[col] ?? 0;
+        html += `<td style="background:#e3f2fd;text-align:center;font-weight:700;font-size:13px;color:var(--primary)">${count}</td>`;
+      }
+      html += '</tr>';
+    }
+
+    // Absence row in table
+    const absByCol = dayData.absencesByCol || {};
+    const hasAbsences = Object.keys(absByCol).length > 0 || (dayData.absences && dayData.absences.length > 0);
+    if (hasAbsences) {
+      // Find max absence rows needed
+      let maxAbs = 0;
+      for (const [col] of therapists) {
+        maxAbs = Math.max(maxAbs, (absByCol[col] || []).length);
+      }
+      if (maxAbs === 0) maxAbs = 1;
+
+      for (let ai = 0; ai < maxAbs; ai++) {
+        html += `<tr><td class="time-cell" style="background:#ffebee;color:var(--danger);font-size:11px">${ai === 0 ? '⚠️ 결석' : ''}</td>`;
+        for (const [col] of therapists) {
+          const abs = absByCol[col] || [];
+          const name = abs[ai] || '';
+          if (name) {
+            const cleanName = name.replace(/[NFMSD]\d*(\(.*?\))?/g,'').replace(/\(도\)/g,'').trim();
+            html += `<td style="background:#fff5f5;color:var(--danger);font-size:11px;cursor:pointer" onclick="memoTabCat='ETC';openMemo('${cleanName.replace(/'/g,"\\'")}',null,true)">${name}</td>`;
+          } else {
+            html += `<td style="background:#fff5f5"></td>`;
+          }
+        }
+        html += '</tr>';
+      }
+    }
+
+    html += '</tbody></table></div></div>';
+  }
+
+  document.getElementById('app').innerHTML = html;
+  setupAttendanceDrag();
+  loadAttendance(); // 서버에서 출석체크 상태 로드
+}
+
+function setTab(tab) { currentTab = tab; render(); }
+function selectTherapist(col) { selectedTherapist = col; render(); }
+
+// Tag dot: return small colored circle prefix for patient status tags
+function tagBg(tag) {
+  const map = { '신환/추가': '#e8f5e9', '임시': '#e3f2fd', '보류': '#fff3e0', '시간변경': '#fce4ec' };
+  return map[tag] || '';
+}
+function tagDot(tag) {
+  if (!tag) return '';
+  const dots = { '신환/추가': '🟢', '임시': '🔵', '보류': '🟠', '시간변경': '🟣' };
+  const d = dots[tag];
+  return d ? `<span style="font-size:9px;margin-right:2px" title="${tag}">${d}</span>` : '';
+}
+
+// ========== Memo (Server-based) ==========
+let longPressTimer = null;
+let highlightPressTimer = null;
+let highlightActive = false;
+
+function startLongPress(name, cat, event) {
+  // 핀치줌 (손가락 2개 이상) 이면 무시
+  if (event && event.touches && event.touches.length > 1) return;
+  // 600ms → 출석체크 토글 (롱프레스)
+  longPressTimer = setTimeout(() => {
+    navigator.vibrate?.(30);
+    const td = event?.target?.closest('td[data-att-key]');
+    if (td) toggleAttendanceTd(td);
+    highlightActive = true;
+    // 롱프레스 후 브라우저가 생성하는 synthetic click 차단 (노란 하이라이트 방지)
+    _suppressHighlightClick = true;
+    setTimeout(() => _suppressHighlightClick = false, 600);
+  }, 600);
+}
+function cancelLongPress() {
+  if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+  if (highlightPressTimer) { clearTimeout(highlightPressTimer); highlightPressTimer = null; }
+  highlightActive = false;
+}
+
+// 환자 하이라이트
+let currentHighlightName = '';
+let highlightIsAfternoon = false; // 오후 환자 여부
+
+async function highlightPatient(targetName, event, cat) {
+  if (event) event.stopPropagation();
+  if (_lastMouseBtn === 2) return;        // 데스크탑 우클릭 차단
+  if (_suppressHighlightClick) return;    // 롱프레스/우클릭 후 synthetic click 차단
+  if (justCleared) return;
+  // 같은 환자 재클릭 → 토글 해제
+  if (currentHighlightName === targetName) { clearHighlight(); return; }
+  clearHighlight();
+
+  const allTds = document.querySelectorAll('.schedule-table td[data-patients]');
+  const matchedTimes = [];
+  allTds.forEach(td => {
+    const names = JSON.parse(td.dataset.patients || '[]');
+    if (names.includes(targetName)) {
+      td.classList.add('patient-highlight');
+      const timeEl = td.closest('tr')?.querySelector('td:first-child');
+      if (timeEl) {
+        const startTime = (timeEl.firstChild?.textContent || timeEl.textContent).trim().replace(/[^\d:]/g, '');
+        const cat = td.classList.contains('ndt-cell') ? 'N' : td.classList.contains('mat-cell') ? 'M' : 'O';
+        if (startTime) matchedTimes.push({ cat, time: startTime });
+      }
+    } else if (td.dataset.patients !== '[]') {
+      td.classList.add('patient-dim');
+    }
+  });
+  if (matchedTimes.length === 0) return;
+  currentHighlightName = targetName;
+
+  // 오전/오후 판별: 첫 시간 기준 (1~5시 = 오후)
+  const firstHour = parseInt((matchedTimes[0]?.time || '0').split(':')[0]);
+  highlightIsAfternoon = firstHour >= 1 && firstHour <= 5;
+
+  // 배너 업데이트
+  const banner = document.getElementById('highlight-banner');
+  const nameEl = document.getElementById('highlight-banner-name');
+  const badgesEl = document.getElementById('highlight-banner-badges');
+  const catColor = { N: '#1565c0', M: '#e65100', O: '#2e7d32' };
+  nameEl.textContent = targetName;
+  badgesEl.innerHTML = matchedTimes.map(t =>
+    `<span style="background:${catColor[t.cat]||'#555'};color:#fff;padding:2px 7px;border-radius:8px;font-size:11px;font-weight:700">${t.cat} ${t.time}</span>`
+  ).join('');
+  banner.style.visibility = 'visible';
+
+  // 클릭한 셀 카테고리로 메모탭 자동 선택
+  memoTabCat = cat || currentUser?.category || 'NDT';
+  openMemo(targetName, matchedTimes, highlightIsAfternoon, true);
+}
+
+let justCleared = false;
+function clearHighlight() {
+  document.querySelectorAll('.patient-highlight, .patient-dim').forEach(el => {
+    el.classList.remove('patient-highlight', 'patient-dim');
+  });
+  document.getElementById('highlight-banner').style.visibility = 'hidden';
+  highlightActive = false;
+  currentHighlightName = '';
+  justCleared = true;
+  setTimeout(() => { justCleared = false; }, 300);
+}
+
+// 테이블 빈칸/바깥 클릭 or 터치 → 하이라이트 + 메모창 해제
+function handleOutsideClick(e) {
+  if (!(highlightActive || document.querySelector('.patient-highlight') || document.querySelector('.memo-overlay'))) return;
+  if (e.target.closest('#highlight-banner')) return;
+  if (e.target.closest('.memo-overlay')) return;
+  const td = e.target.closest('td');
+  if (!td || !td.dataset.patients || td.dataset.patients === '[]') {
+    clearHighlight();
+    closeMemo();
+  }
+}
+// 터치: 스크롤이면 하이라이트 유지, 짧은 탭만 해제
+let _hlTouchStart = null;
+document.addEventListener('touchstart', e => {
+  _hlTouchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() };
+}, { passive: true });
+document.addEventListener('touchmove', e => {
+  if (_hlTouchStart) {
+    const dx = Math.abs(e.touches[0].clientX - _hlTouchStart.x);
+    const dy = Math.abs(e.touches[0].clientY - _hlTouchStart.y);
+    if (dx > 10 || dy > 10) _hlTouchStart = null; // 스크롤 감지 → 탭 아님
+  }
+}, { passive: true });
+document.addEventListener('touchend', e => {
+  if (!_hlTouchStart) return; // 스크롤이었으면 무시
+  if (Date.now() - _hlTouchStart.t > 500) { _hlTouchStart = null; return; } // 롱프레스 무시
+  _hlTouchStart = null;
+  if (e.target.closest('.memo-modal')) return;
+  if (e.target.closest('.memo-overlay')) return;
+  if (e.target.closest('.header-actions')) return; // 헤더 버튼 보호
+  if (e.target.closest('.hbtn')) return; // 헤더 버튼 보호
+  const memoOpen = !!document.querySelector('.memo-overlay');
+  const hlActive = highlightActive || !!document.querySelector('.patient-highlight');
+  if (!memoOpen && !hlActive) return;
+  const td = e.target.closest('td');
+  if (!td || !td.dataset.patients || td.dataset.patients === '[]') {
+    clearHighlight(); closeMemo();
+  }
+}, { passive: true });
+
+document.addEventListener('click', e => {
+  const memoOpen = !!document.querySelector('.memo-overlay');
+  const hlActive = highlightActive || !!document.querySelector('.patient-highlight');
+  if (!hlActive && !memoOpen) return;
+  if (e.target.closest('#highlight-banner')) return;
+  if (e.target.closest('.header-actions')) return; // 헤더 버튼 보호
+  if (e.target.closest('.hbtn')) return;
+  if (e.target.closest('.memo-modal')) return;   // 모달 내부 클릭은 무시
+  if (e.target.closest('.memo-overlay')) {
+    // 오버레이 배경 클릭 (모달 바깥) → 둘 다 해제
+    clearHighlight(); closeMemo(); return;
+  }
+  const td = e.target.closest('td');
+  // 빈 칸 or 테이블 바깥 클릭 → 하이라이트 + 메모창 모두 해제
+  if (!td || !td.dataset.patients || td.dataset.patients === '[]') {
+    clearHighlight();
+    closeMemo();
+  }
+});
+let memoTabCat = null; // current memo tab category
+let pinnedMemoIds = new Set(); // Set of memo IDs that are pinned
+let _lastMemoArgs = null; // remember last openMemo args for re-render
+
+function togglePinMemo(memoId, name) {
+  if (pinnedMemoIds.has(memoId)) {
+    pinnedMemoIds.delete(memoId);
+  } else {
+    pinnedMemoIds.add(memoId);
+  }
+  // re-render memo modal preserving position
+  if (_lastMemoArgs) {
+    openMemo(_lastMemoArgs.name, _lastMemoArgs.todaySlots, _lastMemoArgs.isAfternoon, _lastMemoArgs.fromHighlight);
+  } else {
+    openMemo(name);
+  }
+}
+async function openMemo(name, todaySlots, isAfternoon, fromHighlight) {
+  if (justCleared && !fromHighlight) return;
+  cancelLongPress();
+  _lastMemoArgs = { name, todaySlots, isAfternoon, fromHighlight };
+  // Close existing memo overlay first
+  closeMemo();
+  hideDragBadge(); // 메모창 열리면 드래그 배지 숨김
+  // Default to user's category
+  if (!memoTabCat) memoTabCat = currentUser.category || 'NDT';
+  
+  // Load memo history + attendance in parallel
+  let memoList = [];
+  let attendance = [];
+  try {
+    [memoList, attendance] = await Promise.all([
+      api('GET', `/api/memos/${encodeURIComponent(name)}`),
+      api('GET', `/api/patients/${encodeURIComponent(name)}/attendance?weeks=3`).catch(() => [])
+    ]);
+    memoCache[name] = memoList;
+  } catch(e) { console.error(e); }
+
+  // Filter by selected category (ALL = show everything)
+  const filtered = memoTabCat === 'ALL' ? memoList : memoList.filter(m => m.category === memoTabCat);
+  const counts = { NDT: 0, MAT: 0, OT: 0, ETC: 0 };
+  memoList.forEach(m => { if (counts[m.category] !== undefined) counts[m.category]++; else counts.ETC++; });
+
+  const tabHtml = `<div style="display:flex;gap:0;margin-bottom:8px;border-radius:8px;overflow:hidden;border:1px solid var(--border)">
+    ${['ALL','NDT','MAT','OT','ETC'].map(c => {
+      const active = c === memoTabCat;
+      const colors = {ALL:'#424242',NDT:'#1565c0',MAT:'#e65100',OT:'#2e7d32',ETC:'#6a1b9a'};
+      const labels = {ALL:'모두',NDT:'NDT',MAT:'MAT',OT:'OT',ETC:'기타'};
+      const bg = active ? colors[c] : '#f5f5f5';
+      const fg = active ? '#fff' : '#666';
+      const cnt = c === 'ALL' ? memoList.length : counts[c] || 0;
+      return `<div onclick="memoTabCat='${c}';if(_lastMemoArgs){openMemo(_lastMemoArgs.name,_lastMemoArgs.todaySlots,_lastMemoArgs.isAfternoon,_lastMemoArgs.fromHighlight)}else{openMemo('${name.replace(/'/g,"\\'")}')}" style="flex:1;text-align:center;padding:5px 2px;font-size:10px;font-weight:600;background:${bg};color:${fg};cursor:pointer">${labels[c]} ${cnt?'('+cnt+')':''}</div>`;
+    }).join('')}
+  </div>`;
+
+    function renderMemoEntry(m) {
+    const canEdit = m.author_id === currentUser.id || currentUser.role === 'admin' || currentUser.role === 'manager';
+    const mPinned = pinnedMemoIds.has(m.id);
+    const pinBtn = `<span class="pin-btn" style="color:${mPinned ? '#f57f17' : '#bbb'}" onclick="event.stopPropagation();togglePinMemo(${m.id},'${name.replace(/'/g,"\\'")}')" title="${mPinned ? '고정 해제' : '고정'}">${mPinned ? '📌' : '📍'}</span>`;
+    return `<div class="memo-entry">
+      ${canEdit ? `<span class="del-btn" onclick="deleteMemo(${m.id},'${name.replace(/'/g,"\\'")}')">삭제</span><span class="del-btn" style="color:var(--primary);margin-right:4px" onclick="editMemo(${m.id},'${name.replace(/'/g,"\\'")}','${m.memo.replace(/'/g,"\\'").replace(/\n/g,"\\n")}')">수정</span>` : ''}${pinBtn}
+      <div class="meta">👤 ${m.author_name} · ${m.created_at || m.date || ''}</div>
+      <div class="text">${m.memo}</div>
+    </div>`;
+  }
+  const pinnedItems = filtered.filter(m => pinnedMemoIds.has(m.id));
+  const unpinnedItems = filtered.filter(m => !pinnedMemoIds.has(m.id));
+  const pinnedHtml = pinnedItems.length > 0 ? `<div class="memo-pinned-section">${pinnedItems.map(renderMemoEntry).join('')}</div>` : '';
+  const historyHtml = filtered.length > 0
+    ? `<div class="memo-history">${pinnedHtml}${unpinnedItems.map(renderMemoEntry).join('')}</div>`
+    : '<div style="color:var(--muted);font-size:12px;margin-bottom:8px;text-align:center">메모 없음</div>';
+
+  const overlay = document.createElement('div');
+  // Build attendance badge HTML
+  const attendHtml = attendance && attendance.length > 0 ? (() => {
+    const hasDays = attendance.some(w => w.days.length > 0);
+    if (!hasDays) return '';
+    const badges = attendance.map(w => {
+      if (w.days.length === 0) return `<span style="color:#bbb;font-size:10px">${w.label}:없음</span>`;
+      const dayColor = w.label === '이번주' ? '#1565c0' : w.label === '1주전' ? '#388e3c' : '#6a1b9a';
+      return `<span style="color:${dayColor};font-size:10px"><b>${w.label}</b>:${w.days.join('')}</span>`;
+    });
+    return `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;padding:6px 8px;background:#f8f9fa;border-radius:8px;border:1px solid #e0e0e0">📅 ${badges.join(' ')}</div>`;
+  })() : '';
+
+  // 오늘 치료 뱃지 (이름과 같은 줄, 우측 정렬)
+  const todayBadges = todaySlots && todaySlots.length > 0
+    ? todaySlots.map(t=>{
+        const color = t.cat==='N'?'#1976d2':t.cat==='M'?'#e65100':'#2e7d32';
+        return `<span style="background:${color};color:#fff;border-radius:7px;padding:2px 8px;font-size:11px;font-weight:700;white-space:nowrap">${t.cat} ${t.time}</span>`;
+      }).join('')
+    : '';
+
+  // 위치: 오전환자=하단 절반 중앙, 오후환자=상단 절반 중앙, 일반=기본
+  const posClass = (isAfternoon === true) ? ' memo-top' : (isAfternoon === false && todaySlots) ? ' memo-bottom' : '';
+  overlay.className = 'memo-overlay' + posClass;
+  overlay.innerHTML = `<div class="memo-modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">
+      <h3 style="margin:0">📝 ${splitPatientNames(name)}</h3>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;justify-content:flex-end">${todayBadges}</div>
+    </div>
+    ${attendHtml}
+    ${tabHtml}
+    ${historyHtml}
+    <textarea id="memoText" placeholder="${memoTabCat} 메모 입력..."></textarea>
+    <div class="btns">
+      <button class="cancel" onclick="closeMemo()">닫기</button>
+      ${memoTabCat === 'ETC' ? `<button class="save" style="background:#6a1b9a" onclick="saveMemoAndNotice('${name.replace(/'/g,"\\'")}')">특이사항에도 저장</button>` : ''}
+      <button class="save" onclick="saveMemo('${name.replace(/'/g,"\\'")}')">저장</button>
+    </div>
+  </div>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) { clearHighlight(); closeMemo(); } });
+  document.body.appendChild(overlay);
+  setTimeout(() => {
+    document.getElementById('memoText').focus();
+    const hist = document.querySelector('.memo-history');
+    if (hist) hist.scrollTop = hist.scrollHeight;
+  }, 100);
+}
+function closeMemo() {
+  const el = document.querySelector('.memo-overlay');
+  if (el) el.remove();
+}
+// ESC 키로 메모창/특이사항 닫기 + 드래그 선택 취소
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    // 드래그 선택 취소
+    if (document.querySelectorAll('.drag-selected').length) {
+      document.querySelectorAll('.drag-selected').forEach(el => el.classList.remove('drag-selected'));
+      hideDragBadge();
+      return;
+    }
+    if (document.getElementById('notices-modal')?.classList.contains('open')) closeNoticesModal();
+    else closeMemo();
+  }
+});
+async function saveMemo(name) {
+  const text = document.getElementById('memoText').value.trim();
+  if (!text) return;
+  try {
+    const saveCat = (memoTabCat === 'ALL') ? (currentUser.category || 'NDT') : memoTabCat;
+    await api('POST', '/api/memos', { patientName: name, date: currentDate, memo: text, category: saveCat });
+    closeMemo();
+    openMemo(name); // Refresh to show new memo
+  } catch(e) { alert('저장 실패: ' + e.message); }
+}
+async function saveMemoAndNotice(name) {
+  const text = document.getElementById('memoText').value.trim();
+  if (!text) return;
+  try {
+    // 기타 메모 저장
+    await api('POST', '/api/memos', { patientName: name, date: currentDate, memo: text, category: 'ETC' });
+    // 특이사항에도 저장 (오늘 날짜)
+    await api('POST', '/api/notices', { patientName: name, notice: text, alsoMemo: false });
+    closeMemo();
+    openMemo(name);
+  } catch(e) { alert('저장 실패: ' + e.message); }
+}
+
+async function editMemo(id, name, oldText) {
+  closeMemo();
+  const overlay = document.createElement('div');
+  overlay.className = 'memo-overlay';
+  overlay.innerHTML = `<div class="memo-modal">
+    <h3>✏️ 메모 수정</h3>
+    <textarea id="editMemoText">${oldText}</textarea>
+    <div class="btns">
+      <button class="cancel" onclick="closeMemo();openMemo('${name.replace(/'/g,"\\'")}')">취소</button>
+      <button class="save" onclick="saveEditMemo(${id},'${name.replace(/'/g,"\\'")}')">수정</button>
+    </div>
+  </div>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) { closeMemo(); openMemo(name); }});
+  document.body.appendChild(overlay);
+  setTimeout(() => { const ta = document.getElementById('editMemoText'); ta.focus(); ta.selectionStart = ta.value.length; }, 100);
+}
+async function saveEditMemo(id, name) {
+  const text = document.getElementById('editMemoText').value.trim();
+  if (!text) return;
+  try {
+    await api('PUT', `/api/memos/${id}`, { memo: text });
+    closeMemo();
+    openMemo(name);
+  } catch(e) { alert('수정 실패: ' + e.message); }
+}
+// Extract names WITH their markers (e.g. "김민재f3박병례f3" → [{name:"김민재",marker:"F3"}, ...])
+function extractNamesWithMarkers(text) {
+  text = text.replace(/보호자|보호사/g, ' ')
+    .replace(/([\uAC00-\uD7AF]{2,4})\s+([NFMSDnfmsd]\d*)/g, '$1$2'); // "이름 f3" → "이름f3"
+  const result = [];
+  const seen = new Set();
+  const parts = text.trim().split(/\s+/);
+  for (const part of parts) {
+    const markerRegex = /([NFMSDnfmsd]\d*)(\([^)]*\))?/g;
+    let lastIdx = 0, m;
+    while ((m = markerRegex.exec(part)) !== null) {
+      const before = part.substring(lastIdx, m.index).replace(/[^가-힣]/g, '');
+      const marker = m[1].toUpperCase();
+      if (before.length >= 2 && !seen.has(before)) { seen.add(before); result.push({name: before, marker}); }
+      lastIdx = markerRegex.lastIndex;
+    }
+    const after = part.substring(lastIdx).replace(/\(도\)/g,'').replace(/[^가-힣]/g, '');
+    if (after.length >= 2 && !seen.has(after)) { seen.add(after); result.push({name: after, marker: null}); }
+  }
+  return result;
+}
+
+// Extract individual patient names from concatenated text
+function extractNames(text) {
+  let names = [];
+  text = text.replace(/보호자|보호사/g, ' ')
+    .replace(/([\uAC00-\uD7AF]{2,4})\s+([NFMSDnfmsd]\d*)/g, '$1$2');
+  const parts = text.trim().split(/\s+/);
+  for (const part of parts) {
+    const markerRegex = /[NFMSDnfmsd]\d*(\([^)]*\))?/g;
+    let lastIdx = 0, m;
+    const segments = [];
+    while ((m = markerRegex.exec(part)) !== null) {
+      const before = part.substring(lastIdx, m.index).replace(/[^가-힣]/g, '');
+      if (before.length >= 2) segments.push(before);
+      lastIdx = markerRegex.lastIndex;
+    }
+    const after = part.substring(lastIdx).replace(/\(도\)/g,'').replace(/[^가-힣]/g, '');
+    if (after.length >= 2) segments.push(after);
+    for (const seg of segments) {
+      if (seg.length <= 4) { names.push(seg); }
+      else { for (let i=0;i<seg.length;) { if(i+3<=seg.length){names.push(seg.substring(i,i+3));i+=3;} else if(i+2<=seg.length){names.push(seg.substring(i,i+2));i+=2;} else break; } }
+    }
+  }
+  return [...new Set(names)];
+}
+
+// Split concatenated patient names into clickable individual names
+function splitPatientNames(text) {
+  text = text.replace(/보호자|보호사/g, ' ')
+    .replace(/([\uAC00-\uD7AF]{2,4})\s+([NFMSDnfmsd]\d*)/g, '$1$2');
+  let names = [];
+  const parts = text.trim().split(/\s+/);
+  for (const part of parts) {
+    // Remove markers, keep only Korean + positions
+    // Find all marker positions to split
+    const markerRegex = /[NFMSDnfmsd]\d*(\([^)]*\))?/g;
+    let korean = '';
+    let lastIdx = 0;
+    let m;
+    const segments = [];
+    while ((m = markerRegex.exec(part)) !== null) {
+      const before = part.substring(lastIdx, m.index).replace(/[^가-힣]/g, '');
+      if (before.length >= 2) segments.push(before);
+      lastIdx = markerRegex.lastIndex;
+    }
+    const after = part.substring(lastIdx).replace(/\(도\)/g,'').replace(/[^가-힣]/g, '');
+    if (after.length >= 2) segments.push(after);
+    
+    // Each segment might still have concatenated names (e.g. 류효준최재범최영이)
+    for (const seg of segments) {
+      if (seg.length <= 4) {
+        names.push(seg);
+      } else {
+        // Try 3-char split, fallback 2-char for remainder
+        for (let i = 0; i < seg.length; ) {
+          if (i + 3 <= seg.length) { names.push(seg.substring(i, i+3)); i += 3; }
+          else if (i + 2 <= seg.length) { names.push(seg.substring(i, i+2)); i += 2; }
+          else break;
+        }
+      }
+    }
+  }
+  names = [...new Set(names)];
+  if (names.length > 1) {
+    return names.map(n => 
+      `<span class="clickable-name" onclick="closeMemo();openMemo('${n}')" style="cursor:pointer;border-bottom:1px dashed #999;margin:0 2px">${n}</span>`
+    ).join(' · ');
+  }
+  return (names[0] || text.replace(/[NFMSDnfmsd]\d*(\(.*?\))?/g, '').trim());
+}
+
+// Profile menu
+function toggleProfileMenu() {
+  const m = document.getElementById('profileMenu');
+  m.style.display = m.style.display === 'none' ? 'block' : 'none';
+}
+document.addEventListener('click', (e) => {
+  const m = document.getElementById('profileMenu');
+  if (m && !e.target.closest('.user-name')) m.style.display = 'none';
+});
+
+// Change password
+function openChangePassword() {
+  closeMemo();
+  const overlay = document.createElement('div');
+  overlay.className = 'memo-overlay';
+  overlay.innerHTML = `<div class="memo-modal">
+    <h3>🔑 비밀번호 변경</h3>
+    <input type="password" id="oldPw" placeholder="현재 비밀번호" style="width:100%;padding:8px;margin:4px 0;border:1px solid var(--border);border-radius:6px;box-sizing:border-box">
+    <input type="password" id="newPw" placeholder="새 비밀번호" style="width:100%;padding:8px;margin:4px 0;border:1px solid var(--border);border-radius:6px;box-sizing:border-box">
+    <input type="password" id="newPw2" placeholder="새 비밀번호 확인" style="width:100%;padding:8px;margin:4px 0;border:1px solid var(--border);border-radius:6px;box-sizing:border-box">
+    <div class="btns">
+      <button class="cancel" onclick="closeMemo()">취소</button>
+      <button class="save" onclick="doChangePassword()">변경</button>
+    </div>
+  </div>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeMemo(); });
+  document.body.appendChild(overlay);
+}
+async function doChangePassword() {
+  const oldPw = document.getElementById('oldPw').value;
+  const newPw = document.getElementById('newPw').value;
+  const newPw2 = document.getElementById('newPw2').value;
+  if (!oldPw || !newPw) return alert('비밀번호를 입력하세요');
+  if (newPw !== newPw2) return alert('새 비밀번호가 일치하지 않습니다');
+  if (newPw.length < 4) return alert('비밀번호 4자 이상');
+  try {
+    await api('PUT', '/api/user/password', { oldPassword: oldPw, newPassword: newPw });
+    alert('비밀번호가 변경되었습니다');
+    closeMemo();
+  } catch(e) { alert('변경 실패: ' + e.message); }
+}
+
+// Patient search
+let searchSelectedIdx = -1;
+let searchResultNames = [];
+
+function openSearch() {
+  closeMemo();
+  searchSelectedIdx = -1;
+  searchResultNames = [];
+  const overlay = document.createElement('div');
+  overlay.className = 'memo-overlay';
+  overlay.innerHTML = `<div class="memo-modal" style="max-height:80vh;display:flex;flex-direction:column">
+    <h3>🔍 환자 검색</h3>
+    <input type="text" id="searchInput" placeholder="환자 이름 입력..." style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;box-sizing:border-box" oninput="doSearch(this.value)" onkeydown="searchKeyNav(event)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    <div id="searchResults" style="flex:1;overflow-y:auto;margin-top:8px;max-height:50vh"></div>
+    <div class="btns"><button class="cancel" onclick="closeMemo()">닫기</button></div>
+  </div>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeMemo(); });
+  document.body.appendChild(overlay);
+  setTimeout(() => document.getElementById('searchInput').focus(), 100);
+}
+
+function searchKeyNav(e) {
+  const items = document.querySelectorAll('#searchResults .search-item');
+  if (!items.length) return;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    searchSelectedIdx = Math.min(searchSelectedIdx + 1, items.length - 1);
+    updateSearchHighlight(items);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    searchSelectedIdx = Math.max(searchSelectedIdx - 1, 0);
+    updateSearchHighlight(items);
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    const idx = searchSelectedIdx >= 0 ? searchSelectedIdx : 0;
+    if (searchResultNames[idx]) {
+      closeMemo();
+      openMemo(searchResultNames[idx]);
+    }
+  }
+}
+function updateSearchHighlight(items) {
+  items.forEach((el, i) => {
+    el.style.background = i === searchSelectedIdx ? '#e8eaf6' : '';
+    el.style.borderLeft = i === searchSelectedIdx ? '3px solid var(--primary)' : '3px solid transparent';
+    if (i === searchSelectedIdx) el.scrollIntoView({ block: 'nearest' });
+  });
+}
+
+async function doSearch(query) {
+  searchSelectedIdx = -1;
+  searchResultNames = [];
+  const container = document.getElementById('searchResults');
+  if (!query || query.length < 1) { container.innerHTML = '<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px">이름을 입력하세요</div>'; return; }
+  try {
+    const results = await api('GET', '/api/search/patients?q=' + encodeURIComponent(query));
+    if (results.length === 0) {
+      container.innerHTML = '<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px">검색 결과 없음</div>';
+      return;
+    }
+    searchResultNames = results.map(r => r.name);
+    container.innerHTML = results.map((r, i) => `
+      <div class="search-item" data-idx="${i}" style="padding:10px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-left:3px solid transparent;transition:background 0.1s"
+        onclick="closeMemo();openMemo('${r.name.replace(/'/g,"\\'")}') "
+        onmouseenter="searchSelectedIdx=${i};updateSearchHighlight(document.querySelectorAll('#searchResults .search-item'))">
+        <div>
+          <div style="font-weight:600;font-size:14px">${r.name}</div>
+          ${r.phone ? '<div style="font-size:11px;color:var(--muted)">📞 ' + r.phone + '</div>' : ''}
+        </div>
+        <div style="text-align:right">
+          ${r.memoCount ? '<span style="font-size:11px;color:var(--primary)">📝 ' + r.memoCount + '건</span>' : ''}
+        </div>
+      </div>
+    `).join('');
+  } catch(e) { container.innerHTML = '<div style="color:var(--danger);font-size:12px">검색 오류</div>'; }
+}
+
+async function deleteMemo(id, name) {
+  if (!confirm('메모를 삭제하시겠습니까?')) return;
+  try {
+    await api('DELETE', `/api/memos/${id}`);
+    closeMemo();
+    openMemo(name);
+  } catch(e) { alert('삭제 실패: ' + e.message); }
+}
+
+// ========== Admin ==========
+let adminUsers = [];
+
+async function renderAdmin() {
+  try {
+    // manager 계정은 /api/admin/users (adminOnly) 접근 불가 → 여기서 막히면 "관리"가 아무 반응 없는 것처럼 보임
+    adminUsers = (currentUser.role === 'admin') ? await api('GET', '/api/admin/users') : [];
+  } catch (e) {
+    adminUsers = [];
+    alert('관리 화면 로드 실패: ' + (e?.message || e));
+  }
+  // Merge therapists from all dates (some columns only exist on certain days)
+  const therapistMap = {};
+  for (const day of Object.values(scheduleData)) {
+    if (!day.therapists) continue;
+    for (const [col, t] of Object.entries(day.therapists)) {
+      if (!therapistMap[col]) therapistMap[col] = t;
+    }
+  }
+  const allTherapists = Object.entries(therapistMap).sort((a, b) => a[0].localeCompare(b[0]));
+
+  let html = `
+    <div class="header">
+      <h1 style="font-size:13px">⚙️ 관리자</h1>
+      <div style="display:flex;gap:6px;margin-left:auto">
+        <button onclick="render()" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer">← 시간표</button>
+        <button onclick="logout()" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer">로그아웃</button>
+      </div>
+    </div>
+    <div class="admin-panel">`;
+
+  // 문자 전송 — admin/manager
+  if (currentUser.role === 'admin' || currentUser.role === 'manager') {
+    html += `
+      <div class="upload-section" style="margin-top:0">
+        <h2>💬 문자 전송</h2>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button onclick="syncNasNow()" style="padding:6px 10px;border:1px solid #ddd;border-radius:8px;background:#fff;font-size:12px;cursor:pointer">🔄 스케줄 최신 반영</button>
+          <span id="syncNasStatus" style="font-size:12px;color:var(--muted);align-self:center"></span>
+        </div>
+
+        <div style="margin-top:10px;border-top:1px dashed #eee;padding-top:10px">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px">대상 선택</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:12px">
+            <label><input type="checkbox" id="sms-today-am"> 오늘 오전</label>
+            <label><input type="checkbox" id="sms-today-pm"> 오늘 오후</label>
+            <label><input type="checkbox" id="sms-tomorrow-am"> 내일 오전</label>
+            <label><input type="checkbox" id="sms-tomorrow-pm"> 내일 오후</label>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap">
+            <input type="date" id="sms-custom-date" style="padding:6px;border:1px solid #ddd;border-radius:8px;font-size:12px">
+            <label style="font-size:12px"><input type="checkbox" id="sms-custom-am"> 오전</label>
+            <label style="font-size:12px"><input type="checkbox" id="sms-custom-pm"> 오후</label>
+          </div>
+
+          <button onclick="buildSmsList()" style="width:100%;padding:10px;background:var(--primary);color:#fff;border:none;border-radius:8px;margin-top:10px;font-size:13px;cursor:pointer">문자 리스트 만들기</button>
+
+          <div id="smsPreview" style="margin-top:10px;font-size:12px;color:#444;white-space:pre-wrap"></div>
+
+          <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+            <button onclick="sendSms(true)" style="flex:1;padding:10px;background:#e53935;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-weight:700">📨 LIVE 전송</button>
+          </div>
+          <div id="smsSendResult" style="margin-top:10px;font-size:12px;color:#444;white-space:pre-wrap"></div>
+
+          <!-- 수동 전송 -->
+          <div style="margin-top:16px;border-top:1px solid #eee;padding-top:12px">
+            <strong style="font-size:13px">✏️ 수동 전송</strong>
+            <div style="margin-top:8px;display:flex;flex-direction:column;gap:6px">
+              <input id="manualName" placeholder="이름" style="padding:8px;border:1px solid #ddd;border-radius:6px;font-size:13px">
+              <input id="manualPhone" placeholder="전화번호 (010-0000-0000)" style="padding:8px;border:1px solid #ddd;border-radius:6px;font-size:13px">
+              <textarea id="manualMsg" placeholder="내용 (비우면 기본 예약확인 문자)" rows="3" style="padding:8px;border:1px solid #ddd;border-radius:6px;font-size:13px;resize:vertical"></textarea>
+              <button onclick="sendManualSms()" style="padding:9px;background:#1976d2;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-weight:700">📤 수동 발송</button>
+            </div>
+            <div id="manualSmsResult" style="margin-top:8px;font-size:12px"></div>
+          </div>
+
+          <!-- 전송내역 -->
+          <div style="margin-top:16px;border-top:1px solid #eee;padding-top:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <strong style="font-size:13px">📋 전송내역</strong>
+              <button onclick="loadSmsHistory()" style="font-size:11px;padding:4px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer">새로고침</button>
+            </div>
+            <div id="smsHistory" style="font-size:12px;color:#555">불러오는 중...</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // 사용자 관리 — admin만 (접기/펼치기 + pending 뱃지)
+  if (currentUser.role === 'admin') {
+    const pendingCount = adminUsers.filter(u => u.status === 'pending').length;
+    html += `<details ${pendingCount ? 'open' : ''} style="margin-top:14px">
+      <summary style="cursor:pointer;list-style:none;font-size:15px;font-weight:800;display:flex;align-items:center;gap:8px">
+        <span>👥 직원/사용자 관리</span>
+        ${pendingCount ? `<span style="background:#e53935;color:#fff;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:800">${pendingCount}</span>` : ''}
+        <span style="margin-left:auto;color:#999;font-size:12px;font-weight:600">접기/펼치기</span>
+      </summary>
+      <div class="user-grid" style="margin-top:10px">`;
+
+    for (const user of adminUsers) {
+      const statusLabel = { pending: '⏳대기', approved: '✅승인', rejected: '❌거절' }[user.status];
+      html += `
+        <div class="user-card">
+          <div class="name">${user.display_name} <small style="color:var(--muted)">(${user.username})</small></div>
+          <div class="meta">${statusLabel} · ${user.role} · ${user.category || '미지정'} · ${user.therapist_column ? '열:'+user.therapist_column : '미매핑'}</div>
+          <div class="meta" style="color:${user.last_login ? '#1976d2' : '#bbb'}">
+            🔑 접속: ${user.last_login ? user.last_login.slice(0,16) : '기록없음'}
+            ${user.last_active ? `&nbsp;·&nbsp;🕐 마지막활동: ${user.last_active.slice(0,16)}` : ''}
+          </div>
+          <div class="actions">
+            ${user.status === 'pending' ? `
+              <button class="approve" onclick="approveUser(${user.id})">승인</button>
+              <button class="reject" onclick="rejectUser(${user.id})">거절</button>` : ''}
+            <select onchange="assignTherapist(${user.id}, this.value)">
+              <option value="">치료사 매핑</option>
+              ${allTherapists.map(([col, t]) => `<option value="${col}|${t.category}" ${user.therapist_column === col ? 'selected' : ''}>${t.name} (${t.category})</option>`).join('')}
+            </select>
+            ${user.therapist_column ? `<button style="background:#ff9800;color:#fff" onclick="resetMapping(${user.id})">매핑초기화</button>` : ''}
+            ${user.role !== 'admin' ? `<button class="reject" onclick="deleteUser(${user.id})">삭제</button>` : ''}
+          </div>
+        </div>`;
+    }
+    html += '</div></details>'; // end user-grid
+  }
+
+  // 메모 전체 목록 — admin/manager 모두 볼 수 있음
+  html += `
+      <div class="upload-section" style="margin-top:16px">
+        <h2>📝 메모 전체 목록</h2>
+        <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+          <button onclick="loadAdminMemos('all')" id="memo-btn-all" style="padding:5px 12px;border:1px solid #ddd;border-radius:6px;background:#1976d2;color:#fff;font-size:12px;cursor:pointer">전체</button>
+          <button onclick="loadAdminMemos('NDT')" id="memo-btn-NDT" style="padding:5px 12px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#1976d2;font-size:12px;cursor:pointer">NDT</button>
+          <button onclick="loadAdminMemos('MAT')" id="memo-btn-MAT" style="padding:5px 12px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#e67e22;font-size:12px;cursor:pointer">MAT</button>
+          <button onclick="loadAdminMemos('OT')" id="memo-btn-OT" style="padding:5px 12px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#2e7d32;font-size:12px;cursor:pointer">OT</button>
+        </div>
+        <div id="admin-memo-list" style="font-size:12px;color:var(--muted)">불러오는 중...</div>
+      </div>`;
+
+  html += `
+      <div class="upload-section">
+        <h2>📁 시간표 업로드</h2>
+        <p style="font-size:12px;color:var(--muted)">월간 시간표 Excel 파일(.xlsx) 업로드</p>
+        <input type="file" id="xlsxFile" accept=".xlsx,.xls">
+        <button onclick="uploadExcel()" style="width:100%;padding:10px;background:var(--primary);color:#fff;border:none;border-radius:8px;margin-top:8px;font-size:13px;cursor:pointer">업로드</button>
+        <div id="upload-result" style="margin-top:8px;font-size:12px"></div>
+      </div>
+    </div>`;
+  document.getElementById('app').innerHTML = html;
+  // 메모 목록 자동 로드
+  loadAdminMemos('all');
+  // 전송내역 자동 로드
+  loadSmsHistory();
+}
+
+async function approveUser(id) { await api('PUT', `/api/admin/users/${id}`, { status: 'approved' }); renderAdmin(); }
+async function rejectUser(id) { await api('PUT', `/api/admin/users/${id}`, { status: 'rejected' }); renderAdmin(); }
+async function assignTherapist(id, val) {
+  if (!val) return;
+  const [col, cat] = val.split('|');
+  await api('PUT', `/api/admin/users/${id}`, { therapistColumn: col, category: cat, status: 'approved' }); renderAdmin();
+}
+async function deleteUser(id) { if (!confirm('정말 삭제하시겠습니까?')) return; await api('DELETE', `/api/admin/users/${id}`); renderAdmin(); }
+async function resetMapping(id) { if (!confirm('치료사 매핑을 초기화하시겠습니까?')) return; await api('PUT', `/api/admin/users/${id}/reset-mapping`); renderAdmin(); }
+async function loadAdminMemos(cat) {
+  const container = document.getElementById('admin-memo-list');
+  if (!container) return;
+  // 버튼 색상 토글
+  ['all','NDT','MAT','OT'].forEach(k => {
+    const btn = document.getElementById('memo-btn-' + k);
+    if (!btn) return;
+    const colors = { all: '#1976d2', NDT: '#1976d2', MAT: '#e67e22', OT: '#2e7d32' };
+    btn.style.background = (k === cat) ? colors[k] : '#fff';
+    btn.style.color = (k === cat) ? '#fff' : colors[k];
+  });
+  container.innerHTML = '<span style="color:#aaa">불러오는 중...</span>';
+  try {
+    const url = cat === 'all' ? '/api/admin/memos?limit=200' : `/api/admin/memos?category=${cat}&limit=200`;
+    const memos = await api('GET', url);
+    if (!memos || memos.length === 0) {
+      container.innerHTML = '<span style="color:#bbb">메모가 없습니다.</span>';
+      return;
+    }
+    const catColor = { NDT: '#1976d2', MAT: '#e67e22', OT: '#2e7d32', ETC: '#888' };
+    const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'manager');
+    let rows = memos.map(m => {
+      const c = catColor[m.category] || '#888';
+      const cleanName = m.patient_name.replace(/[NFMSD]\d*/g, '').trim();
+      const safeId = `admemo-${m.id}`;
+      const adminBtns = isAdmin ? `
+        <div style="display:flex;gap:4px;margin-top:4px">
+          <button onclick="editAdminMemo(${m.id},'${safeId}')" style="font-size:11px;padding:2px 8px;border:1px solid #1976d2;color:#1976d2;background:#fff;border-radius:5px;cursor:pointer">수정</button>
+          <button onclick="deleteAdminMemo(${m.id})" style="font-size:11px;padding:2px 8px;border:1px solid #e53935;color:#e53935;background:#fff;border-radius:5px;cursor:pointer">삭제</button>
+        </div>` : '';
+      return `<div id="${safeId}" style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0">
+        <span style="min-width:34px;padding:2px 6px;background:${c};color:#fff;border-radius:10px;font-size:10px;font-weight:700;text-align:center">${m.category}</span>
+        <div style="flex:1">
+          <div style="font-weight:700;color:#333;font-size:13px">${cleanName} <span style="font-weight:400;color:#aaa;font-size:11px">${m.date}</span></div>
+          <div id="${safeId}-text" style="color:#555;margin-top:2px;word-break:keep-all">${m.memo}</div>
+          ${adminBtns}
+        </div>
+        <div style="min-width:54px;text-align:right;color:#999;font-size:11px">${m.author_name || '-'}<br>${(m.created_at||'').slice(5,16)}</div>
+      </div>`;
+    }).join('');
+    container.innerHTML = `<div style="color:#888;font-size:11px;margin-bottom:6px">총 ${memos.length}개</div>` + rows;
+  } catch(e) {
+    container.innerHTML = '<span style="color:red">불러오기 실패</span>';
+  }
+}
+
+async function editAdminMemo(id, safeId) {
+  const textEl = document.getElementById(safeId + '-text');
+  if (!textEl) return;
+  const current = textEl.innerText;
+  // 인라인 수정 UI
+  textEl.innerHTML = `
+    <textarea id="edit-ta-${id}" style="width:100%;font-size:12px;padding:4px;border:1px solid #1976d2;border-radius:5px;resize:vertical;min-height:48px">${current}</textarea>
+    <div style="display:flex;gap:4px;margin-top:4px">
+      <button onclick="saveAdminMemo(${id},'${safeId}')" style="font-size:11px;padding:2px 10px;background:#1976d2;color:#fff;border:none;border-radius:5px;cursor:pointer">저장</button>
+      <button onclick="loadAdminMemos('all')" style="font-size:11px;padding:2px 10px;background:#eee;color:#555;border:none;border-radius:5px;cursor:pointer">취소</button>
+    </div>`;
+}
+async function saveAdminMemo(id, safeId) {
+  const ta = document.getElementById(`edit-ta-${id}`);
+  if (!ta || !ta.value.trim()) return alert('내용을 입력하세요');
+  const res = await api('PUT', `/api/memos/${id}`, { memo: ta.value.trim() });
+  if (res && res.message) loadAdminMemos('all');
+  else alert('수정 실패');
+}
+async function deleteAdminMemo(id) {
+  if (!confirm('이 메모를 삭제할까요?')) return;
+  const res = await api('DELETE', `/api/memos/${id}`);
+  if (res && res.message) loadAdminMemos('all');
+  else alert('삭제 실패');
+}
+
+async function uploadExcel() {
+  const input = document.getElementById('xlsxFile');
+  if (!input.files[0]) return alert('파일을 선택하세요');
+  const form = new FormData(); form.append('file', input.files[0]);
+  const res = await fetch(API + '/api/admin/upload', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form });
+  const data = await res.json();
+  document.getElementById('upload-result').innerHTML = res.ok ? `✅ ${data.message}` : `❌ ${data.error}`;
+  if (res.ok) await loadSchedule();
+}
+
+// ========== SMS GUI ==========
+let smsPreviewPayload = null; // 마지막 preview 결과 보관
+
+function getKSTDate(offsetDays = 0) {
+  const d = new Date();
+  d.setHours(d.getHours() + 9); // UTC→KST
+  d.setDate(d.getDate() + offsetDays);
+  return d.toISOString().slice(0, 10);
+}
+
+async function syncNasNow() {
+  const el = document.getElementById('syncNasStatus');
+  el.textContent = '동기화 중...';
+  try {
+    const res = await api('POST', '/api/admin/sync-nas');
+    el.innerHTML = `✅ ${res.message || '완료'}`;
+    // 스케줄도 새로 로드
+    await loadSchedule();
+  } catch (e) {
+    el.innerHTML = `❌ ${e.message || '동기화 실패'}`;
+  }
+}
+
+async function buildSmsList() {
+  const el = document.getElementById('smsPreview');
+  el.textContent = '리스트 생성 중...';
+  smsPreviewPayload = null;
+
+  const targets = [];
+  const today = getKSTDate(0);
+  const tomorrow = getKSTDate(1);
+
+  if (document.getElementById('sms-today-am').checked) targets.push({ date: today, period: 'am' });
+  if (document.getElementById('sms-today-pm').checked) targets.push({ date: today, period: 'pm' });
+  if (document.getElementById('sms-tomorrow-am').checked) targets.push({ date: tomorrow, period: 'am' });
+  if (document.getElementById('sms-tomorrow-pm').checked) targets.push({ date: tomorrow, period: 'pm' });
+
+  const customDate = document.getElementById('sms-custom-date').value;
+  if (customDate) {
+    if (document.getElementById('sms-custom-am').checked) targets.push({ date: customDate, period: 'am' });
+    if (document.getElementById('sms-custom-pm').checked) targets.push({ date: customDate, period: 'pm' });
+  }
+
+  if (targets.length === 0) { el.textContent = '⚠️ 대상을 선택하세요'; return; }
+
+  try {
+    const data = await api('POST', '/api/admin/sms/preview', { targets });
+    if (!data.results || data.results.length === 0) { el.textContent = '결과 없음'; return; }
+
+    // 통합 결과 표시 + payload 저장
+    let html = '';
+    const mergedSendList = [];
+    const mergedCaregiverList = [];
+
+    for (const r of data.results) {
+      const res = r.result;
+      if (res.error) { html += `<div style="color:red">❌ ${r.date} ${r.period}: ${res.error}</div>`; continue; }
+
+      const periodLabel = r.period === 'am' ? '오전' : '오후';
+      const dateLabel = res.date_label || r.date;
+      html += `<div style="border-bottom:1px solid #eee;padding:8px 0">`;
+      html += `<strong>📋 ${dateLabel} ${periodLabel}</strong>`;
+      html += `<div>본인 ${res.send_list.length}명 · 보호자 ${res.caregiver_list.length}명`;
+      if (res.excluded_absent?.length) html += ` · 결석제외 ${res.excluded_absent.join(', ')}`;
+      html += `</div>`;
+
+      // 시간별 그룹 — 본인/보호자/본인+보호자 구분
+      const byTime = {};
+      const selfNames = new Set(res.send_list.map(p => p.name));
+      const caregiverNames = new Set(res.caregiver_list.map(p => p.name));
+      // 본인+보호자 둘 다 있는 환자
+      const bothNames = new Set([...selfNames].filter(n => caregiverNames.has(n)));
+
+      for (const p of [...res.send_list, ...res.caregiver_list]) {
+        if (!byTime[p.time]) byTime[p.time] = { '3층': [], '1층': [] };
+        const loc = p.type === 'OT' ? '1층' : '3층';
+        let badge = '';
+        if (p.send_type === 'caregiver') {
+          if (bothNames.has(p.name)) {
+            badge = '<span style="font-size:10px;color:#1565c0" title="본인+보호자">👤👪</span>';
+          } else {
+            badge = '<span style="font-size:10px;color:#e65100" title="보호자만">👪</span>';
+          }
+        } else {
+          if (bothNames.has(p.name)) {
+            badge = '<span style="font-size:10px;color:#1976d2" title="본인">👤</span>';
+          } else {
+            badge = '<span style="font-size:10px;color:#2e7d32" title="본인만">👤</span>';
+          }
+        }
+        // 같은 시간+이름 중복 방지
+        const key = `${p.name}_${p.send_type}`;
+        const existing = byTime[p.time][loc].find(x => x.key === key);
+        if (!existing) {
+          byTime[p.time][loc].push({ key, html: `${badge}${p.name}` });
+        }
+      }
+      // 시간 오름차순 정렬
+      const sortedTimes = Object.keys(byTime).sort((a, b) => {
+        const toMin = t => { const [h,m] = t.split(':').map(Number); return h*60+(m||0); };
+        return toMin(a) - toMin(b);
+      });
+      for (const time of sortedTimes) {
+        const floors = byTime[time];
+        let parts = [];
+        if (floors['3층'].length > 0) parts.push(`<span style="color:#1565c0;font-weight:600">3층</span> ${floors['3층'].map(x=>x.html).join(' · ')}`);
+        if (floors['1층'].length > 0) parts.push(`<span style="color:#2e7d32;font-weight:600">1층</span> ${floors['1층'].map(x=>x.html).join(' · ')}`);
+        html += `<div style="color:#555;font-size:12px">⏰ ${time} → ${parts.join(' <span style="color:#bbb">│</span> ')}</div>`;
+      }
+
+      // 요약: 환자 수, 보호자/보호사 수
+      const selfOnlyCount = [...selfNames].filter(n => !caregiverNames.has(n)).length;
+      const careOnlyCount = [...caregiverNames].filter(n => !selfNames.has(n)).length;
+      const bothCount = bothNames.size;
+      html += `<div style="font-size:11px;color:#555;margin-top:4px">`;
+      html += `👤 본인만: ${selfOnlyCount}명`;
+      if (bothCount > 0) html += ` · 👤👪 본인+보호자: ${bothCount}명`;
+      if (careOnlyCount > 0) html += ` · 👪 보호자만: ${careOnlyCount}명`;
+      html += ` · <strong>환자 ${selfNames.size + careOnlyCount}명 / 보호자 ${res.caregiver_list.length}명</strong>`;
+      html += `</div>`;
+
+      if (res.missing?.length) {
+        html += `<div style="color:#e53935">❌ 연락처 없음: ${res.missing.join(', ')} `;
+        html += `<button onclick="syncMissingContacts()" style="font-size:11px;padding:2px 8px;border:1px solid #1976d2;color:#1976d2;background:#fff;border-radius:5px;cursor:pointer;margin-left:4px">🔍 구글 주소록 검색</button>`;
+        html += `</div>`;
+        window._smsMissingNames = (window._smsMissingNames || []).concat(res.missing);
+      }
+      html += `<div style="color:var(--primary)">📨 총 ${res.total_sms}건 (문자 발송 수)</div>`;
+      html += `</div>`;
+
+      // payload에 날짜 라벨 세팅
+      for (const s of res.send_list) { s.date = dateLabel; mergedSendList.push(s); }
+      for (const c of res.caregiver_list) { c.date = dateLabel; mergedCaregiverList.push(c); }
+    }
+
+    const totalSms = mergedSendList.length + mergedCaregiverList.length;
+    html += `<div style="font-weight:700;margin-top:8px;color:var(--primary)">총 발송 대상: ${totalSms}건</div>`;
+    el.innerHTML = html;
+
+    // payload 보관
+    smsPreviewPayload = {
+      send_list: mergedSendList,
+      caregiver_list: mergedCaregiverList,
+      date_label: data.results[0]?.result?.date_label || targets[0].date,
+      date: targets[0].date,
+      period: targets[0].period,
+      total_sms: totalSms,
+    };
+  } catch (e) {
+    el.innerHTML = `<div style="color:red">❌ ${e.message || '리스트 생성 실패'}</div>`;
+  }
+}
+
+async function syncMissingContacts() {
+  const names = window._smsMissingNames || [];
+  if (names.length === 0) { alert('검색할 이름이 없습니다'); return; }
+  const unique = [...new Set(names)];
+
+  const el = document.getElementById('smsPreview');
+  const prevHtml = el.innerHTML;
+  el.innerHTML += `<div id="syncStatus" style="margin-top:8px;padding:8px;background:#e3f2fd;border-radius:6px;font-size:12px">🔍 구글 주소록에서 ${unique.length}명 검색 중...</div>`;
+
+  try {
+    const data = await api('POST', '/api/admin/sms/sync-contacts', { names: unique });
+    let statusHtml = `<div style="margin-top:8px;padding:8px;background:#e8f5e9;border-radius:6px;font-size:12px">`;
+    statusHtml += `<strong>📞 연락처 검색 완료</strong> (${data.updated}명 새로 등록)<br>`;
+    for (const r of data.results) {
+      if (r.status === 'found') {
+        statusHtml += `<span style="color:#2e7d32">✅ ${r.name} → ${r.phone} (${r.matched || ''})</span><br>`;
+      } else if (r.status === 'not_found') {
+        statusHtml += `<span style="color:#e53935">❌ ${r.name} → 못 찾음</span><br>`;
+      } else if (r.status === 'already_exists') {
+        statusHtml += `<span style="color:#1976d2">📌 ${r.name} → 이미 등록됨 (${r.phone})</span><br>`;
+      }
+    }
+    statusHtml += `</div>`;
+    // 찾은 환자가 있으면 (found 또는 already_exists) 자동으로 리스트 재생성
+    const foundNames = data.results.filter(r => r.status === 'found' || r.status === 'already_exists').map(r => r.name);
+    const stillMissing = data.results.filter(r => r.status === 'not_found').map(r => r.name);
+
+    if (foundNames.length > 0) {
+      statusHtml += `<div style="margin-top:6px;font-size:11px;color:#1976d2">🔄 ${foundNames.length}명 반영 — 리스트 자동 재생성 중...</div>`;
+    }
+    if (stillMissing.length > 0) {
+      statusHtml += `<div style="margin-top:4px;font-size:11px;color:#e53935">⚠️ 여전히 못 찾음: ${stillMissing.join(', ')} (수동 등록 필요)</div>`;
+    }
+
+    const syncEl = document.getElementById('syncStatus');
+    if (syncEl) syncEl.outerHTML = statusHtml;
+    else el.innerHTML = prevHtml + statusHtml;
+
+    // 찾은 환자가 있으면 리스트 자동 재생성
+    if (foundNames.length > 0) {
+      await new Promise(r => setTimeout(r, 500));
+      await buildSmsList();
+    }
+  } catch (e) {
+    const syncEl = document.getElementById('syncStatus');
+    const errHtml = `<div style="margin-top:8px;padding:8px;background:#ffebee;border-radius:6px;font-size:12px;color:#c62828">❌ 동기화 실패: ${e.message}</div>`;
+    if (syncEl) syncEl.outerHTML = errHtml;
+    else el.innerHTML = prevHtml + errHtml;
+  }
+}
+
+async function sendSms(live) {
+  const el = document.getElementById('smsSendResult');
+  if (!smsPreviewPayload) { el.textContent = '⚠️ 먼저 "문자 리스트 만들기"를 실행하세요'; return; }
+
+  let confirmText = '';
+  if (live) {
+    if (!confirm(`📨 LIVE 전송 확인\n\n총 ${smsPreviewPayload.total_sms}건을 실제 발송합니다.\n\n정말 발송하시겠습니까?`)) {
+      el.textContent = '❌ 전송 취소됨';
+      return;
+    }
+    confirmText = 'SEND';
+  }
+
+  el.textContent = live ? '📨 발송 중...' : '🧪 DRY RUN 실행 중...';
+  try {
+    const data = await api('POST', '/api/admin/sms/send', {
+      payload: smsPreviewPayload,
+      live,
+      confirmText: live ? 'SEND' : undefined,
+    });
+
+    const stdout = data.stdout || '';
+
+    // JSON 결과 파싱 시도
+    const jsonMatch = stdout.split('__SMS_RESULT_JSON__\n');
+    if (jsonMatch.length >= 2 && live) {
+      try {
+        const result = JSON.parse(jsonMatch[1].trim());
+        let rhtml = `<div style="padding:10px;border-radius:8px;background:${result.failed === 0 ? '#e8f5e9' : '#fff3e0'};margin-top:8px">`;
+        rhtml += `<div style="font-size:15px;font-weight:800;margin-bottom:8px">${result.failed === 0 ? '✅ 전송 완료' : '⚠️ 전송 완료 (일부 실패)'}</div>`;
+        rhtml += `<div style="display:flex;gap:16px;margin-bottom:10px">`;
+        rhtml += `<div style="text-align:center"><div style="font-size:22px;font-weight:800;color:#2e7d32">${result.sent}</div><div style="font-size:11px;color:#555">성공</div></div>`;
+        rhtml += `<div style="text-align:center"><div style="font-size:22px;font-weight:800;color:#e53935">${result.failed}</div><div style="font-size:11px;color:#555">실패</div></div>`;
+        rhtml += `<div style="text-align:center"><div style="font-size:22px;font-weight:800;color:#1976d2">${result.total}</div><div style="font-size:11px;color:#555">전체</div></div>`;
+        rhtml += `</div>`;
+
+        // 상세 목록
+        rhtml += `<div style="max-height:200px;overflow-y:auto;font-size:12px">`;
+        for (const d of result.details) {
+          const icon = d.status === 'sent' ? '✅' : '❌';
+          const phoneDisplay = d.phone ? d.phone.replace('+82', '0').replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3') : '';
+          rhtml += `<div style="padding:3px 0;border-bottom:1px solid #f0f0f0">${icon} ${d.name} <span style="color:#999">${phoneDisplay}</span></div>`;
+        }
+        rhtml += `</div>`;
+
+        // 실패 항목 강조
+        const failedItems = result.details.filter(d => d.status !== 'sent');
+        if (failedItems.length > 0) {
+          rhtml += `<div style="margin-top:8px;padding:6px;background:#ffebee;border-radius:6px;font-size:12px;color:#c62828">`;
+          rhtml += `<strong>❌ 실패 목록:</strong><br>`;
+          for (const f of failedItems) rhtml += `${f.name} (${f.phone || '번호없음'})<br>`;
+          rhtml += `</div>`;
+        }
+
+        rhtml += `</div>`;
+        el.innerHTML = rhtml;
+      } catch {
+        el.innerHTML = `<pre style="white-space:pre-wrap;font-size:11px;background:#f5f5f5;padding:8px;border-radius:6px">${stdout}</pre>`;
+      }
+    } else {
+      // DRY RUN이거나 JSON 파싱 실패 — 기존 방식
+      el.innerHTML = `<pre style="white-space:pre-wrap;font-size:11px;background:#f5f5f5;padding:8px;border-radius:6px">${stdout || data.message}</pre>`;
+    }
+    if (data.stderr) el.innerHTML += `<pre style="color:#e53935;font-size:11px">${data.stderr}</pre>`;
+    // LIVE 발송 후 내역 자동 새로고침
+    if (live) setTimeout(loadSmsHistory, 1500);
+  } catch (e) {
+    el.innerHTML = `<div style="color:red">❌ ${e.message || '전송 실패'}</div>`;
+  }
+}
+
+async function loadSmsHistory() {
+  const el = document.getElementById('smsHistory');
+  if (!el) return;
+  try {
+    const data = await api('GET', '/api/admin/sms/history');
+    const logs = data.logs || [];
+    if (logs.length === 0) { el.innerHTML = '<div style="color:#999">전송내역 없음</div>'; return; }
+    let html = '';
+    for (const log of logs) {
+      if (log.error) continue;
+      // timestamp: YYYYMMDD_HHMMSS → 보기 좋게
+      const ts = log.timestamp || '';
+      const dateStr = ts.length >= 8 ? `${ts.slice(0,4)}-${ts.slice(4,6)}-${ts.slice(6,8)}` : ts;
+      const timeStr = ts.length >= 15 ? `${ts.slice(9,11)}:${ts.slice(11,13)}` : '';
+      const statusColor = log.failed === 0 ? '#2e7d32' : '#e53935';
+      html += `<div style="border:1px solid #e0e0e0;border-radius:8px;padding:8px;margin-bottom:8px">`;
+      html += `<div style="display:flex;justify-content:space-between;align-items:center">`;
+      html += `<span style="font-weight:600;cursor:pointer" onclick="toggleSmsDetail('${log.file}')">${dateStr} ${timeStr}</span>`;
+      html += `<div style="display:flex;align-items:center;gap:8px">`;
+      html += `<span style="color:${statusColor};font-weight:700">✅${log.sent} ❌${log.failed}</span>`;
+      html += `<button onclick="deleteSmsHistory('${log.file}')" style="font-size:10px;padding:2px 7px;border:1px solid #ffcdd2;border-radius:4px;background:#fff;color:#e53935;cursor:pointer">삭제</button>`;
+      html += `</div></div>`;
+      html += `<div id="detail_${log.file}" style="display:none;margin-top:6px;max-height:150px;overflow-y:auto">`;
+      if (log.details) {
+        for (const d of log.details) {
+          const icon = d.status === 'sent' ? '✅' : '❌';
+          const phone = (d.phone||'').replace('+82','0').replace(/(\d{3})(\d{4})(\d{4})/,'$1-$2-$3');
+          html += `<div style="padding:2px 0;border-bottom:1px solid #f5f5f5">${icon} ${d.name} <span style="color:#999">${phone}</span></div>`;
+        }
+      }
+      html += `</div></div>`;
+    }
+    el.innerHTML = html;
+  } catch (e) {
+    el.innerHTML = `<div style="color:red">내역 로드 실패: ${e.message}</div>`;
+  }
+}
+
+function toggleSmsDetail(file) {
+  const el = document.getElementById('detail_' + file);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+async function deleteSmsHistory(file) {
+  if (!confirm(`전송내역 "${file}"을 삭제할까요?`)) return;
+  try {
+    await api('DELETE', `/api/admin/sms/history/${encodeURIComponent(file)}`);
+    loadSmsHistory();
+  } catch (e) {
+    alert('삭제 실패: ' + e.message);
+  }
+}
+
+async function sendManualSms() {
+  const name = document.getElementById('manualName').value.trim();
+  const phone = document.getElementById('manualPhone').value.trim().replace(/-/g,'');
+  const msg = document.getElementById('manualMsg').value.trim();
+  const el = document.getElementById('manualSmsResult');
+
+  if (!name) { el.innerHTML = '<span style="color:red">이름을 입력하세요</span>'; return; }
+  if (!phone || phone.length < 10) { el.innerHTML = '<span style="color:red">전화번호를 확인하세요</span>'; return; }
+
+  // 전화번호 +82 형식 변환
+  const intlPhone = phone.startsWith('0') ? '+82' + phone.slice(1) : phone;
+
+  // 기본 문자 내용
+  const today = currentDate || new Date().toLocaleDateString('sv-SE', {timeZone:'Asia/Seoul'});
+  const defaultMsg = `[전주E재활]${name}님\n예약확인입니다.\n변경:010-5829-3358`;
+  const finalMsg = msg || defaultMsg;
+
+  el.innerHTML = '📤 발송 중...';
+  try {
+    const payload = {
+      date: today,
+      date_label: '수동발송',
+      period: 'manual',
+      send_list: [{ name, phone: intlPhone, time: '', type: 'NDT', floor: '3', send_type: 'self', custom_message: finalMsg }],
+      caregiver_list: [],
+      total_sms: 1
+    };
+    const data = await api('POST', '/api/admin/sms/send', { payload, live: true, confirmText: 'SEND' });
+    const stdout = data.stdout || '';
+    const jsonParts = stdout.split('__SMS_RESULT_JSON__');
+    if (jsonParts.length >= 2) {
+      const r = JSON.parse(jsonParts[1].trim());
+      el.innerHTML = r.failed === 0
+        ? `<span style="color:#2e7d32;font-weight:700">✅ ${name} (${phone}) 발송 성공</span>`
+        : `<span style="color:#e53935;font-weight:700">❌ 발송 실패</span>`;
+      if (r.failed === 0) setTimeout(loadSmsHistory, 1500);
+    } else {
+      el.innerHTML = `<pre style="font-size:11px;background:#f5f5f5;padding:6px;border-radius:6px">${stdout||data.message}</pre>`;
+    }
+  } catch (e) {
+    el.innerHTML = `<span style="color:red">❌ ${e.message}</span>`;
+  }
+}
+
+async function render() {
+  const payload = parseToken();
+  if (!payload) return renderAuth();
+  currentUser = payload;
+  selectedTherapist = selectedTherapist || currentUser.therapistColumn || null;
+  if (Object.keys(scheduleData).length === 0) {
+    await loadSchedule();
+    await loadChanges();
+    connectSSE(); // 페이지 로드 시에도 SSE 연결
+  }
+  renderSchedule();
+}
+
+render();
+
+// ── PWA 설치 배너 ──
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  if (!localStorage.getItem('pwa-dismissed')) {
+    document.getElementById('pwa-banner').classList.add('show');
+  }
+});
+
+document.getElementById('pwa-install-btn').addEventListener('click', async () => {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  if (isIOS) {
+    alert('📱 홈 화면 추가 방법\n\n1. 하단 공유 버튼(□↑) 탭\n2. "홈 화면에 추가" 선택\n3. 오른쪽 위 "추가" 탭\n\n설치 후 홈 화면 아이콘으로 열면\n알림 설정이 가능해요!');
+    dismissPwaBanner();
+    return;
+  }
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    dismissPwaBanner();
+  }
+});
+
+function dismissPwaBanner() {
+  document.getElementById('pwa-banner').classList.remove('show');
+  localStorage.setItem('pwa-dismissed', '1');
+}
+
+// 설치 완료 시 배너 숨기기
+window.addEventListener('appinstalled', () => dismissPwaBanner());
+
+// iOS에서 standalone 아닌 경우 배너 표시
+window.addEventListener('load', () => {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isStandalone = window.navigator.standalone;
+  const dismissed = localStorage.getItem('pwa-dismissed');
+  if (isIOS && !isStandalone && !dismissed) {
+    setTimeout(() => {
+      document.getElementById('pwa-banner').classList.add('show');
+    }, 3000);
+  }
+});
+
+// 🍱 점심 채팅 이스터에그
+const LUNCH_EMOJIS = ['😊','😂','🥳','🍕','🍜','🍱','☕','🤣','👍','❤️','🔥','😴'];
+
+async function openLunchChat() {
+  let modal = document.getElementById('lunchChatModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'lunchChatModal';
+    modal.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:flex-end;justify-content:center`;
+    modal.innerHTML = `
+      <div style="background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:500px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div style="padding:16px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:8px;">
+          <span style="font-size:24px">🍱</span>
+          <div>
+            <div style="font-weight:700;font-size:16px">점심 수다방</div>
+            <div style="font-size:11px;color:#999">오늘 하루, 하고 싶은 말 남겨봐요 🤫</div>
+          </div>
+          <button onclick="document.getElementById('lunchChatModal').remove()" style="margin-left:auto;background:none;border:none;font-size:20px;cursor:pointer;color:#999">✕</button>
+        </div>
+        <div id="lunchMsgList" style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;"></div>
+        <div style="padding:10px 12px;border-top:1px solid #eee;">
+          <div id="lunchEmojiPicker" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+            ${LUNCH_EMOJIS.map(e => `<span onclick="selectLunchEmoji('${e}')" style="font-size:20px;cursor:pointer;opacity:0.7;transition:transform 0.1s" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform=''">${e}</span>`).join('')}
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span id="lunchSelectedEmoji" style="font-size:22px">😊</span>
+            <input id="lunchMsgInput" type="text" placeholder="하고 싶은 말..." maxlength="100"
+              style="flex:1;padding:8px 12px;border:1px solid #ddd;border-radius:20px;font-size:14px;outline:none;"
+              onkeydown="if(event.key==='Enter')sendLunchMsg()">
+            <button onclick="sendLunchMsg()" style="padding:8px 16px;background:#ff9800;color:#fff;border:none;border-radius:20px;font-weight:700;cursor:pointer;">전송</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if(e.target===modal) modal.remove(); });
+  }
+  await loadLunchMsgs();
+}
+
+function selectLunchEmoji(e) {
+  document.getElementById('lunchSelectedEmoji').textContent = e;
+}
+
+async function loadLunchMsgs() {
+  const list = document.getElementById('lunchMsgList');
+  if (!list) return;
+  const msgs = await api('GET', '/api/lunch/messages');
+  if (!msgs || msgs.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:#bbb;padding:30px 0;font-size:14px">아직 메시지가 없어요<br>첫 메시지를 남겨보세요! 🍱</div>';
+    return;
+  }
+  const me = currentUser?.displayName || currentUser?.display_name;
+  list.innerHTML = msgs.map(m => {
+    const isMine = m.display_name === me;
+    const time = new Date(m.created_at + 'Z').toLocaleTimeString('ko-KR', {hour:'2-digit',minute:'2-digit'});
+    return `<div style="display:flex;flex-direction:${isMine?'row-reverse':'row'};align-items:flex-end;gap:6px;">
+      <span style="font-size:22px">${m.emoji}</span>
+      <div style="max-width:70%">
+        ${!isMine ? `<div style="font-size:11px;color:#999;margin-bottom:2px;">${m.display_name}</div>` : ''}
+        <div style="background:${isMine?'#ff9800':'#f0f0f0'};color:${isMine?'#fff':'#333'};padding:8px 12px;border-radius:${isMine?'16px 16px 4px 16px':'16px 16px 16px 4px'};font-size:14px;word-break:break-all;">
+          ${m.message}
+        </div>
+        <div style="font-size:10px;color:#bbb;margin-top:2px;text-align:${isMine?'right':'left'}">${time}${isMine?` <span onclick="deleteLunchMsg(${m.id})" style="cursor:pointer;margin-left:6px;opacity:0.6;" title="삭제">🗑️</span>`:''}</div>
+      </div>
+    </div>`;
+  }).join('');
+  // 최신 메시지가 맨 아래 → 자동 스크롤
+  list.scrollTop = list.scrollHeight;
+}
+
+async function sendLunchMsg() {
+  const input = document.getElementById('lunchMsgInput');
+  const emoji = document.getElementById('lunchSelectedEmoji').textContent;
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  await api('POST', '/api/lunch/messages', { message: msg, emoji });
+  await loadLunchMsgs();
+}
+
+async function deleteLunchMsg(id) {
+  await api('DELETE', `/api/lunch/messages/${id}`);
+  await loadLunchMsgs();
+}
+
+// 🎰 복권 모달
+async function openLotteryModal() {
+  let modal = document.getElementById('lotteryModal');
+  if (modal) modal.remove();
+  modal = document.createElement('div');
+  modal.id = 'lotteryModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10000;display:flex;align-items:center;justify-content:center;';
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:20px;width:90%;max-width:340px;padding:28px 24px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.3);">
+      <div style="font-size:48px;margin-bottom:8px">🎰</div>
+      <div style="font-weight:800;font-size:20px;margin-bottom:4px">오늘의 복권</div>
+      <div style="font-size:13px;color:#999;margin-bottom:24px">하루 1번! 긁어서 확인하세요 🤫</div>
+      <div id="lotteryResult" style="min-height:80px;display:flex;align-items:center;justify-content:center;"></div>
+      <button id="lotteryBtn" onclick="drawLottery()" style="margin-top:20px;width:100%;padding:14px;background:linear-gradient(135deg,#ff9800,#f44336);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:800;cursor:pointer;">🎫 긁어보기!</button>
+      <button onclick="document.getElementById('lotteryModal').remove()" style="margin-top:10px;width:100%;padding:10px;background:#f5f5f5;color:#666;border:none;border-radius:12px;font-size:14px;cursor:pointer;">닫기</button>
+      ${currentUser?.role === 'admin' ? `<button onclick="resetMyLottery()" style="margin-top:6px;width:100%;padding:8px;background:none;color:#bbb;border:none;font-size:12px;cursor:pointer;">🔄 내 응모 초기화</button>` : ''}
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if(e.target===modal) modal.remove(); });
+
+  // 오늘 이미 응모했는지 확인
+  const entry = await api('GET', '/api/lunch/lottery/today');
+  if (entry) {
+    document.getElementById('lotteryBtn').disabled = true;
+    document.getElementById('lotteryBtn').style.opacity = '0.5';
+    document.getElementById('lotteryBtn').textContent = '오늘은 이미 응모했어요';
+    showLotteryResult(entry.won === 1, entry.amount, true);
+  }
+}
+
+function showLotteryResult(won, amount, already = false) {
+  const el = document.getElementById('lotteryResult');
+  if (won) {
+    el.innerHTML = `
+      <div>
+        <div style="font-size:48px;animation:bounce 0.5s ease">🎉</div>
+        <div style="font-weight:800;font-size:22px;color:#ff9800;margin:8px 0">당첨!!</div>
+        <div style="font-size:22px;color:#ff9800;font-weight:800;margin-top:4px">💰 1,000원!</div>
+        ${already ? '<div style="font-size:12px;color:#999;margin-top:6px">이미 응모한 결과예요</div>' : ''}
+      </div>`;
+  } else {
+    el.innerHTML = `
+      <div>
+        <div style="font-size:48px">😢</div>
+        <div style="font-weight:700;font-size:18px;color:#666;margin:8px 0">꽝...</div>
+        <div style="font-size:13px;color:#999">내일 다시 도전해요!</div>
+        ${already ? '<div style="font-size:12px;color:#bbb;margin-top:4px">이미 응모한 결과예요</div>' : ''}
+      </div>`;
+  }
+}
+
+async function resetMyLottery() {
+  await api('DELETE', '/api/lunch/lottery/my');
+  document.getElementById('lotteryModal').remove();
+  await openLotteryModal();
+}
+
+async function drawLottery() {
+  const btn = document.getElementById('lotteryBtn');
+  btn.disabled = true;
+  btn.textContent = '🎲 추첨 중...';
+  const el = document.getElementById('lotteryResult');
+  el.innerHTML = '<div style="font-size:40px;animation:spin 0.5s linear infinite">🎰</div>';
+
+  await new Promise(r => setTimeout(r, 1200)); // 두근두근 딜레이
+
+  const result = await api('POST', '/api/lunch/lottery', {});
+  window._lotteryMaxReached = result?.maxReached && !result?.won;
+  if (result?.error === 'outsideHours') {
+    el.innerHTML = `<div><div style="font-size:40px">🕐</div><div style="font-weight:700;font-size:15px;color:#666;margin:8px 0">운영시간이 아닙니다</div><div style="font-size:12px;color:#999;line-height:1.6">📅 평일: 오전 8시 ~ 오후 6시<br>🗓️ 토요일: 오전 8시 ~ 오후 1시</div></div>`;
+    btn.textContent = '운영시간에 다시 도전!';
+    btn.style.opacity = '0.5';
+    return;
+  }
+  if (result?.error === 'notWorking') {
+    el.innerHTML = `<div><div style="font-size:40px">🏖️</div><div style="font-weight:700;font-size:15px;color:#666;margin:8px 0">오늘은 근무일이 아니에요!</div><div style="font-size:13px;color:#999">근무하는 날만 복권 응모 가능해요 😊</div></div>`;
+    btn.textContent = '근무일에 다시 도전!';
+    btn.style.opacity = '0.5';
+    return;
+  }
+  if (result.alreadyDrawn) {
+    btn.textContent = '오늘은 이미 응모했어요';
+    btn.style.opacity = '0.5';
+    showLotteryResult(result.won, result.amount, true);
+    return;
+  }
+  showLotteryResult(result.won, result.amount);
+  btn.textContent = result.won ? '🎉 당첨!!!' : '😢 꽝...';
+  btn.style.opacity = '0.5';
+}
+</script>
+
+<!-- 특이사항 모달 -->
+<div id="notices-modal" onclick="closeNoticesModalOutside(event)">
+  <div id="notices-modal-box">
+    <div class="nm-header">
+      <h2>📋 특이사항 관리</h2>
+      <button onclick="closeNoticesModal()" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:4px 12px;border-radius:6px;font-size:13px;cursor:pointer">✕</button>
+    </div>
+    <div id="notices-modal-body">
+      <!-- 입력 폼 -->
+      <div class="notice-add-form">
+        <div style="font-size:12px;font-weight:700;color:#1976d2;margin-bottom:8px">➕ 특이사항 등록</div>
+        <div style="position:relative">
+          <input type="text" id="notice-patient-input" placeholder="환자 이름 검색..." oninput="noticeSearchPatient(this.value)" onkeydown="noticeSearchKeyNav(event)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+          <div id="notice-search-results" style="display:none;position:absolute;left:0;right:0;top:36px;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.12);z-index:100;max-height:160px;overflow-y:auto"></div>
+        </div>
+        <textarea id="notice-text-input" placeholder="예: 3/20까지 여행으로 못 오심, 4월 수술 예정 등..."></textarea>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:#555;cursor:pointer">
+            <input type="checkbox" id="notice-also-memo" style="width:15px;height:15px">
+            기타 메모에도 저장
+          </label>
+          <button onclick="submitNotice()" style="margin-left:auto;padding:6px 18px;background:#1976d2;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">저장</button>
+        </div>
+      </div>
+      <!-- 목록 -->
+      <div style="font-size:12px;font-weight:700;color:#555;margin-bottom:8px">📌 등록된 특이사항</div>
+      <div id="notices-list"><span style="color:#aaa;font-size:12px">불러오는 중...</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── 특이사항 모달 ──────────────────────────────
+let noticeSelectedPatient = '';
+let noticesFilter = 'all';
+let noticeSearchIdx = -1;
+let noticeSearchNames = [];
+
+function noticeSearchKeyNav(e) {
+  const items = document.querySelectorAll('#notice-search-results .notice-search-item');
+  if (e.key === 'Escape') { closeNoticesModal(); return; }
+  if (!items.length) return;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    e.stopPropagation();
+    noticeSearchIdx = noticeSearchIdx < 0 ? 0 : Math.min(noticeSearchIdx + 1, items.length - 1);
+    updateNoticeSearchHighlight(items);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    e.stopPropagation();
+    noticeSearchIdx = Math.max(noticeSearchIdx - 1, 0);
+    updateNoticeSearchHighlight(items);
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    const idx = noticeSearchIdx >= 0 ? noticeSearchIdx : 0;
+    if (noticeSearchNames[idx]) selectNoticePatient(noticeSearchNames[idx]);
+  }
+}
+function updateNoticeSearchHighlight(items) {
+  items.forEach((el, i) => {
+    el.style.background = i === noticeSearchIdx ? '#e8eaf6' : '';
+    el.style.fontWeight = i === noticeSearchIdx ? '700' : '400';
+    if (i === noticeSearchIdx) el.scrollIntoView({ block: 'nearest' });
+  });
+}
+
+function openNoticesModal() {
+  document.getElementById('notices-modal').classList.add('open');
+  noticeSelectedPatient = '';
+  document.getElementById('notice-patient-input').value = '';
+  document.getElementById('notice-text-input').value = '';
+  document.getElementById('notice-also-memo').checked = false;
+  loadNoticesList();
+  setTimeout(() => document.getElementById('notice-patient-input').focus(), 150);
+}
+function closeNoticesModal() {
+  document.getElementById('notices-modal').classList.remove('open');
+}
+function closeNoticesModalOutside(e) {
+  if (e.target === document.getElementById('notices-modal')) closeNoticesModal();
+}
+
+async function noticeSearchPatient(q) {
+  const box = document.getElementById('notice-search-results');
+  if (!q || q.length < 1) { box.style.display = 'none'; return; }
+  try {
+    const results = await api('GET', `/api/search/patients?q=${encodeURIComponent(q)}`);
+    const names = [...new Set((results||[]).map(r => r.name || r.cleanName || r.patient_name).filter(Boolean))].slice(0, 10);
+    if (!names.length) { box.style.display = 'none'; return; }
+    noticeSearchIdx = -1;
+    noticeSearchNames = names;
+    box.innerHTML = names.map((n, i) =>
+      `<div class="notice-search-item" data-idx="${i}" onclick="selectNoticePatient('${n}')" style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f0f0f0">${n}</div>`
+    ).join('');
+    box.style.display = 'block';
+  } catch(e) { box.style.display = 'none'; }
+}
+function selectNoticePatient(name) {
+  noticeSelectedPatient = name;
+  document.getElementById('notice-patient-input').value = name;
+  document.getElementById('notice-search-results').style.display = 'none';
+  setTimeout(() => document.getElementById('notice-text-input').focus(), 50);
+}
+
+async function submitNotice() {
+  const name = noticeSelectedPatient || document.getElementById('notice-patient-input').value.trim();
+  const notice = document.getElementById('notice-text-input').value.trim();
+  const alsoMemo = document.getElementById('notice-also-memo').checked;
+  if (!name) return alert('환자 이름을 입력하세요');
+  if (!notice) return alert('내용을 입력하세요');
+  const res = await api('POST', '/api/notices', { patientName: name, notice, alsoMemo, memoCategory: 'ETC' });
+  if (res && res.message) {
+    document.getElementById('notice-patient-input').value = '';
+    document.getElementById('notice-text-input').value = '';
+    document.getElementById('notice-also-memo').checked = false;
+    noticeSelectedPatient = '';
+    loadNoticesList();
+  } else { alert('저장 실패'); }
+}
+
+async function loadNoticesList() {
+  const container = document.getElementById('notices-list');
+  if (!container) return;
+  container.innerHTML = '<span style="color:#aaa;font-size:12px">불러오는 중...</span>';
+  try {
+    const notices = await api('GET', '/api/notices');
+    if (!notices || !notices.length) {
+      container.innerHTML = '<span style="color:#bbb;font-size:12px">등록된 특이사항이 없습니다.</span>';
+      return;
+    }
+    const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'manager');
+    container.innerHTML = notices.map(n => {
+      const canEdit = isAdmin || n.author_id === currentUser?.id;
+      return `<div class="notice-card" id="nc-${n.id}">
+        <div class="nc-name">👤 ${n.patient_name}</div>
+        <div class="nc-text" id="nc-text-${n.id}">${n.notice}</div>
+        <div class="nc-meta">작성: ${n.author_name || '-'} · ${(n.created_at||'').slice(0,16)}${n.updated_at && n.updated_at !== n.created_at ? ' · 수정됨' : ''}</div>
+        ${canEdit ? `<div class="nc-actions">
+          <button onclick="editNotice(${n.id})" style="border-color:#1976d2;color:#1976d2;background:#fff">✏️ 수정</button>
+          <button onclick="deleteNotice(${n.id})" style="border-color:#e53935;color:#e53935;background:#fff">🗑 삭제</button>
+        </div>` : ''}
+      </div>`;
+    }).join('');
+  } catch(e) {
+    container.innerHTML = '<span style="color:red;font-size:12px">불러오기 실패</span>';
+  }
+}
+
+function editNotice(id) {
+  const textEl = document.getElementById(`nc-text-${id}`);
+  if (!textEl) return;
+  const cur = textEl.innerText;
+  textEl.innerHTML = `
+    <textarea id="nc-edit-ta-${id}" style="width:100%;font-size:12px;padding:6px;border:1px solid #1976d2;border-radius:6px;resize:vertical;min-height:52px;box-sizing:border-box">${cur}</textarea>
+    <div style="display:flex;gap:4px;margin-top:4px">
+      <button onclick="saveNotice(${id})" style="font-size:11px;padding:3px 12px;background:#1976d2;color:#fff;border:none;border-radius:5px;cursor:pointer">저장</button>
+      <button onclick="loadNoticesList()" style="font-size:11px;padding:3px 10px;background:#eee;color:#555;border:none;border-radius:5px;cursor:pointer">취소</button>
+    </div>`;
+}
+async function saveNotice(id) {
+  const ta = document.getElementById(`nc-edit-ta-${id}`);
+  if (!ta || !ta.value.trim()) return alert('내용을 입력하세요');
+  const res = await api('PUT', `/api/notices/${id}`, { notice: ta.value.trim() });
+  if (res && res.message) loadNoticesList();
+  else alert('수정 실패');
+}
+async function deleteNotice(id) {
+  if (!confirm('이 특이사항을 삭제할까요?')) return;
+  const res = await api('DELETE', `/api/notices/${id}`);
+  if (res && res.message) loadNoticesList();
+  else alert('삭제 실패');
+}
+
+// ── 드래그 셀 선택 (Excel 방식) ─────────────────
+let isDragging = false;
+let dragStartCell = null;
+
+function getCellPatientCount(td) {
+  try {
+    const data = JSON.parse(td.getAttribute('data-patients') || '[]');
+    return data.filter(n => n && n.trim()).length || (td.textContent.trim() ? 1 : 0);
+  } catch { return td.textContent.trim() ? 1 : 0; }
+}
+
+document.addEventListener('mousedown', e => {
+  // 테이블 안 어느 셀이든 시작 가능 (빈칸 포함)
+  const td = e.target.closest('.schedule-table td');
+  if (!td) return;
+  e.preventDefault();
+  isDragging = true;
+  dragStartCell = td;
+  document.querySelectorAll('.drag-selected').forEach(el => el.classList.remove('drag-selected'));
+  // 빈칸이 아닌 환자셀이면 즉시 선택
+  if (isPatientCell(td)) { td.classList.add('drag-selected'); updateDragBadge(); }
+  document.body.style.userSelect = 'none';
+  document.body.style.webkitUserSelect = 'none';
+});
+
+function isPatientCell(td) {
+  return (td.classList.contains('ndt-cell') || td.classList.contains('mat-cell') || td.classList.contains('ot-cell')) && !td.classList.contains('empty');
+}
+
+document.addEventListener('mouseover', e => {
+  if (!isDragging || !dragStartCell) return;
+  const td = e.target.closest('.schedule-table td');
+  if (!td) return;
+
+  // 픽셀 좌표 기반 직사각형 선택 (colspan/rowspan 무관)
+  const r1 = dragStartCell.getBoundingClientRect();
+  const r2 = td.getBoundingClientRect();
+  const selLeft   = Math.min(r1.left,   r2.left);
+  const selRight  = Math.max(r1.right,  r2.right);
+  const selTop    = Math.min(r1.top,    r2.top);
+  const selBottom = Math.max(r1.bottom, r2.bottom);
+
+  document.querySelectorAll('.drag-selected').forEach(el => el.classList.remove('drag-selected'));
+  document.querySelectorAll('.schedule-table td.ndt-cell, .schedule-table td.mat-cell, .schedule-table td.ot-cell').forEach(cell => {
+    if (cell.classList.contains('empty')) return;
+    const cr = cell.getBoundingClientRect();
+    const cx = (cr.left + cr.right) / 2;
+    const cy = (cr.top + cr.bottom) / 2;
+    if (cx >= selLeft && cx <= selRight && cy >= selTop && cy <= selBottom) {
+      cell.classList.add('drag-selected');
+    }
+  });
+  updateDragBadge();
+});
+
+document.addEventListener('mouseup', () => {
+  if (isDragging) {
+    isDragging = false;
+    dragStartCell = null;
+    document.body.style.userSelect = '';
+    document.body.style.webkitUserSelect = '';
+    if (!document.querySelectorAll('.drag-selected').length) hideDragBadge();
+  }
+});
+
+// 테이블 셀 위에서 텍스트 선택 시작 자체를 막음
+document.addEventListener('selectstart', e => {
+  if (e.target.closest('.schedule-table')) e.preventDefault();
+});
+
+function updateDragBadge() {
+  const cells = document.querySelectorAll('.drag-selected');
+  if (!cells.length) { hideDragBadge(); return; }
+  let total = 0;
+  cells.forEach(td => { total += getCellPatientCount(td); });
+  const badge = document.getElementById('drag-count-badge');
+  badge.textContent = `선택 ${cells.length}칸 · 환자 ${total}명`;
+  badge.classList.add('show');
+}
+function hideDragBadge() {
+  document.getElementById('drag-count-badge').classList.remove('show');
+}
+
+// 테이블 외부 클릭 시 선택 해제
+document.addEventListener('click', e => {
+  if (!e.target.closest('.schedule-table')) {
+    document.querySelectorAll('.drag-selected').forEach(el => el.classList.remove('drag-selected'));
+    hideDragBadge();
+  }
+});
+
+// 검색 박스 외부 클릭 시 닫기
+document.addEventListener('click', e => {
+  const box = document.getElementById('notice-search-results');
+  const input = document.getElementById('notice-patient-input');
+  if (box && input && !box.contains(e.target) && e.target !== input) {
+    box.style.display = 'none';
+  }
+});
+</script>
+</body>
+</html>

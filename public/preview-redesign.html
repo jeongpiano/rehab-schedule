@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>재활 시간표 — 리디자인 미리보기</title>
+<style>
+  :root {
+    --primary: #0891B2;
+    --primary-dark: #0369A1;
+    --primary-light: #22D3EE;
+    --ndt: #0369A1;
+    --mat: #EA580C;
+    --ot: #16A34A;
+    --bg: #F0FDFA;
+    --card: #ffffff;
+    --text: #134E4A;
+    --muted: #5EADA0;
+    --border: #CFFAFE;
+    --am-bg: #EFF6FF;
+    --am-text: #1D4ED8;
+    --pm-bg: #FFF7ED;
+    --pm-text: #C2410C;
+    --shadow-sm: 0 1px 3px rgba(8,145,178,0.08), 0 1px 2px rgba(8,145,178,0.06);
+    --shadow-md: 0 4px 16px rgba(8,145,178,0.13), 0 2px 6px rgba(8,145,178,0.08);
+    --shadow-lg: 0 10px 30px rgba(8,145,178,0.18), 0 4px 12px rgba(8,145,178,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 13px;
+    min-height: 100vh;
+  }
+
+  .app {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: var(--bg);
+    position: relative;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, #0891B2 0%, #0369A1 100%);
+    color: #fff;
+    padding: 10px 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 12px rgba(3,105,161,0.3);
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  .date-nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+  }
+
+  .date-btn {
+    width: 28px; height: 28px;
+    background: rgba(255,255,255,0.2);
+    border: none; border-radius: 8px;
+    color: #fff; font-size: 14px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .date-btn:hover { background: rgba(255,255,255,0.35); }
+
+  .date-label {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 5px;
+  }
+
+  .hbtn {
+    height: 28px;
+    padding: 0 10px;
+    background: rgba(255,255,255,0.2);
+    border: none; border-radius: 8px;
+    color: #fff; font-size: 12px; font-weight: 600;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 3px;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+  .hbtn:hover { background: rgba(255,255,255,0.35); }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex;
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .tab {
+    flex: 1;
+    padding: 9px 4px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    border: none;
+    background: #f8fffe;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    color: var(--muted);
+    transition: all 0.2s ease;
+    letter-spacing: -0.2px;
+  }
+
+  .tab.active.ndt {
+    border-bottom-color: var(--ndt);
+    color: var(--ndt);
+    background: #EFF6FF;
+  }
+  .tab.active.mat {
+    border-bottom-color: var(--mat);
+    color: var(--mat);
+    background: #FFF7ED;
+  }
+  .tab.active.ot {
+    border-bottom-color: var(--ot);
+    color: var(--ot);
+    background: #F0FDF4;
+  }
+  .tab.active.my {
+    border-bottom-color: var(--primary);
+    color: var(--primary);
+    background: #ECFEFF;
+  }
+
+  /* ── CONTENT ── */
+  .content {
+    padding: 12px;
+    padding-bottom: 80px;
+  }
+
+  /* ── SECTION DIVIDER ── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 14px 0 8px;
+  }
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+  .section-label.am {
+    background: var(--am-bg);
+    color: var(--am-text);
+  }
+  .section-label.pm {
+    background: var(--pm-bg);
+    color: var(--pm-text);
+  }
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .section-count {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  /* ── PATIENT CARD ── */
+  .card {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(8,145,178,0.08);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: var(--ndt);
+    border-radius: 4px 0 0 4px;
+  }
+  .card.mat::before { background: var(--mat); }
+  .card.ot::before { background: var(--ot); }
+
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(8,145,178,0.2);
+  }
+  .card:active { transform: translateY(0); }
+
+  .card-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0891B2, #22D3EE);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .card-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .card-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+    letter-spacing: -0.3px;
+  }
+
+  .card-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .chip.am {
+    background: var(--am-bg);
+    color: var(--am-text);
+  }
+  .chip.pm {
+    background: var(--pm-bg);
+    color: var(--pm-text);
+  }
+  .chip.floor {
+    background: #F0FDFA;
+    color: var(--muted);
+    font-size: 10px;
+  }
+
+  .card-arrow {
+    color: var(--border);
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  /* ── STATS BAR ── */
+  .stats-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .stat-card {
+    flex: 1;
+    background: #fff;
+    border-radius: 12px;
+    padding: 10px 12px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    text-align: center;
+  }
+  .stat-num {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 2px;
+    font-weight: 600;
+  }
+
+  /* ── REDESIGN BADGE ── */
+  .redesign-badge {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    background: linear-gradient(135deg, #0891B2, #0369A1);
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    box-shadow: 0 4px 16px rgba(8,145,178,0.4);
+    z-index: 999;
+    letter-spacing: 0.3px;
+  }
+
+  /* ── TAB PANEL ── */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-top">
+      <div class="date-nav">
+        <button class="date-btn">◀</button>
+        <span class="date-label">3월 8일 (일)</span>
+        <button class="date-btn">▶</button>
+      </div>
+      <div class="header-actions">
+        <button class="hbtn">🔍 필터</button>
+        <button class="hbtn">⚙️ 관리</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active ndt" onclick="switchTab(this,'ndt')">NDT</button>
+    <button class="tab mat" onclick="switchTab(this,'mat')">MAT</button>
+    <button class="tab ot" onclick="switchTab(this,'ot')">OT</button>
+    <button class="tab my" onclick="switchTab(this,'my')">내 시간표</button>
+  </div>
+
+  <!-- NDT 패널 -->
+  <div class="tab-panel active" id="panel-ndt">
+    <div class="content">
+
+      <!-- 통계 -->
+      <div class="stats-bar">
+        <div class="stat-card">
+          <div class="stat-num">6</div>
+          <div class="stat-label">오늘 환자</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" style="color:#1D4ED8">3</div>
+          <div class="stat-label">오전</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" style="color:#C2410C">3</div>
+          <div class="stat-label">오후</div>
+        </div>
+      </div>
+
+      <!-- 오전 섹션 -->
+      <div class="section-header">
+        <span class="section-label am">오전 AM</span>
+        <div class="section-line"></div>
+        <span class="section-count">3명</span>
+      </div>
+
+      <div class="card" onclick="this.style.background='#f0fdfa'">
+        <div class="card-avatar">김</div>
+        <div class="card-info">
+          <div class="card-name">김민준</div>
+          <div class="card-chips">
+            <span class="chip am">⏰ 09:00</span>
+            <span class="chip am">⏰ 10:00</span>
+            <span class="chip floor">NDT 3층</span>
+          </div>
+        </div>
+        <span class="card-arrow">›</span>
+      </div>
+
+      <div class="card" onclick="this.style.background='#f0fdfa'">
+        <div class="card-avatar">이</div>
+        <div class="card-info">
+          <div class="card-name">이서연</div>
+          <div class="card-chips">
+            <span class="chip am">⏰ 09:30</span>
+            <span class="chip floor">NDT 2층</span>
+          </div>
+        </div>
+        <span class="card-arrow">›</span>
+      </div>
+
+      <div class="card" onclick="this.style.background='#f0fdfa'">
+        <div class="card-avatar">정</div>
+        <div class="card-info">
+          <div class="card-name">정하은</div>
+          <div class="card-chips">
+            <span class="chip am">⏰ 11:00</span>
+            <span class="chip floor">NDT 3층</span>
+          </div>
+        </div>
+        <span class="card-arrow">›</span>
+      </div>
+
+      <!-- 오후 섹션 -->
+      <div class="section-header">
+        <span class="section-label pm">오후 PM</span>
+        <div class="section-line"></div>
+        <span class="section-count">3명</span>
+      </div>
+
+      <div class="card" onclick="this.style.background='#f0fdfa'">
+        <div class="card-avatar">최</div>
+        <div class="card-info">
+          <div class="card-name">최수아</div>
+          <div class="card-chips">
+            <span class="chip pm">⏰ 13:30</span>
+            <span class="chip floor">NDT 2층</span>
+          </div>
+        </div>
+        <span class="card-arrow">›</span>
+      </div>
+
+      <div class="card" onclick="this.style.background='#f0fdfa'">
+        <div class="card-avatar">박</div>
+        <div class="card-info">
+          <div class="card-name">박지호</div>
+          <div class="card-chips">
+            <span class="chip pm">⏰ 14:00</span>
+            <span class="chip pm">⏰ 15:00</span>
+            <span class="chip floor">NDT 3층</span>
+          </div>
+        </div>
+        <span class="card-arrow">›</span>
+      </div>
+
+      <div class="card" onclick="this.style.background='#f0fdfa'">
+        <div class="card-avatar">윤</div>
+        <div class="card-info">
+          <div class="card-name">윤도현</div>
+          <div class="card-chips">
+            <span class="chip pm">⏰ 16:00</span>
+            <span class="chip floor">NDT 2층</span>
+          </div>
+        </div>
+        <span class="card-arrow">›</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MAT 패널 -->
+  <div class="tab-panel" id="panel-mat">
+    <div class="content">
+      <div class="section-header">
+        <span class="section-label am">오전 AM</span>
+        <div class="section-line"></div>
+      </div>
+      <div class="card mat">
+        <div class="card-avatar" style="background:linear-gradient(135deg,#EA580C,#F97316)">홍</div>
+        <div class="card-info">
+          <div class="card-name">홍길동</div>
+          <div class="card-chips">
+            <span class="chip am">⏰ 10:00</span>
+            <span class="chip floor">MAT 2층</span>
+          </div>
+        </div>
+        <span class="card-arrow">›</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- OT 패널 -->
+  <div class="tab-panel" id="panel-ot">
+    <div class="content">
+      <div class="section-header">
+        <span class="section-label pm">오후 PM</span>
+        <div class="section-line"></div>
+      </div>
+      <div class="card ot">
+        <div class="card-avatar" style="background:linear-gradient(135deg,#16A34A,#22C55E)">강</div>
+        <div class="card-info">
+          <div class="card-name">강민서</div>
+          <div class="card-chips">
+            <span class="chip pm">⏰ 14:30</span>
+            <span class="chip floor">OT 작업치료실</span>
+          </div>
+        </div>
+        <span class="card-arrow">›</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 내 시간표 패널 -->
+  <div class="tab-panel" id="panel-my">
+    <div class="content" style="text-align:center;padding-top:60px;color:var(--muted)">
+      <div style="font-size:40px;margin-bottom:12px">📋</div>
+      <div style="font-weight:700;font-size:15px">내 시간표</div>
+      <div style="font-size:12px;margin-top:6px">로그인 후 확인 가능합니다</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 리디자인 배지 -->
+<div class="redesign-badge">✨ UI UX Pro Max 리디자인</div>
+
+<script>
+function switchTab(el, type) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panel-' + type).classList.add('active');
+}
+</script>
+</body>
+</html>
